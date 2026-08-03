@@ -114,3 +114,17 @@ export function getComparison(originalText, typedText, backendItems) {
 
   return aligned
 }
+
+export function getAttemptedOriginalText(originalText, typedText) {
+  if (!typedText) return ''
+
+  const attemptedOperations = alignText(originalText, typedText).filter((item) =>
+    item.type !== 'UNTYPED' && item.type !== 'CURRENT',
+  )
+  const lastOriginalIndex = attemptedOperations.reduce(
+    (highest, item) => Math.max(highest, item.originalIndex ?? -1),
+    -1,
+  )
+
+  return originalText.slice(0, lastOriginalIndex + 1)
+}

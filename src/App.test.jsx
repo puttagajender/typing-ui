@@ -1,8 +1,8 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
-import { PASSAGE } from './data/passages'
+import { PASSAGE, PASSAGES } from './data/passages'
 import { analyzeTyping } from './services/typingApi'
 
 vi.mock('./services/typingApi', () => ({ analyzeTyping: vi.fn() }))
@@ -36,6 +36,8 @@ describe('Typing Coach application', () => {
     analyzeTyping.mockReset()
     analyzeTyping.mockResolvedValue(completeResult)
   })
+
+  afterEach(() => vi.useRealTimers())
 
   it('shows the initial application, passage, accessible controls, and zero elapsed time', () => {
     render(<App />)
@@ -256,5 +258,104 @@ describe('Typing Coach application', () => {
     await user.click(screen.getByRole('button', { name: 'Finish Test' }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Could not connect to the typing service')
+  })
+
+  it('changes difficulty and displays a passage from the selected category', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.selectOptions(screen.getByLabelText('Difficulty'), 'advanced')
+
+    expect(screen.getByLabelText('Difficulty')).toHaveValue('advanced')
+    expect(screen.getByLabelText('Text to type')).toHaveTextContent(PASSAGES.advanced[0])
+  })
+
+  it('selects a new passage without immediately repeating the current passage', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    const initialPassage = screen.getByLabelText('Text to type').textContent
+
+    await user.click(screen.getByRole('button', { name: 'New Passage' }))
+
+    expect(screen.getByLabelText('Text to type')).toHaveTextContent(PASSAGES.beginner[1])
+    expect(screen.getByLabelText('Text to type').textContent).not.toBe(initialPassage)
+  })
+
+  it.each([
+    ['30', '30.0'],
+    ['60', '60.0'],
+    ['120', '120.0'],
+  ])('configures the %s-second timed mode', async (mode, displayedSeconds) => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.selectOptions(screen.getByLabelText('Test mode'), mode)
+
+    expect(screen.getByLabelText('Test mode')).toHaveValue(mode)
+    expect(screen.getByText(displayedSeconds)).toBeVisible()
+    expect(screen.getByText('seconds remaining')).toBeVisible()
+  })
+
+  it('automatically submits complete-passage mode when the passage is finished', async () => {
+    render(<App />)
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Your typing' }), { target: { value: PASSAGE } })
+
+    await waitFor(() => expect(analyzeTyping).toHaveBeenCalledOnce())
+    expect(analyzeTyping.mock.calls[0][0]).toMatchObject({ originalText: PASSAGE, typedText: PASSAGE })
+  })
+
+  it('automatically submits when a 30-second test reaches zero', async () => {
+    vi.useFakeTimers()
+    render(<App />)
+
+    fireEvent.change(screen.getByLabelText('Test mode'), { target: { value: '30' } })
+    fireEvent.change(screen.getByRole('textbox', { name: 'Your typing' }), { target: { value: 'A calm' } })
+    await act(async () => vi.advanceTimersByTime(30100))
+
+    expect(analyzeTyping).toHaveBeenCalledOnce()
+    expect(screen.getByText('Time is up. Your test was submitted automatically.')).toBeInTheDocument()
+  })
+
+  it('restart preserves the selected timed mode and resets its countdown', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.selectOptions(screen.getByLabelText('Test mode'), '60')
+    await user.type(screen.getByRole('textbox', { name: 'Your typing' }), 'A')
+    await user.click(screen.getByRole('button', { name: 'Restart Test' }))
+
+    expect(screen.getByLabelText('Test mode')).toHaveValue('60')
+    expect(screen.getByRole('textbox', { name: 'Your typing' })).toHaveValue('')
+    expect(screen.getByText('60.0')).toBeVisible()
+  })
+
+  it('new passage clears an existing result', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.type(screen.getByRole('textbox', { name: 'Your typing' }), 'A')
+    await user.click(screen.getByRole('button', { name: 'Finish Test' }))
+    expect(await screen.findByRole('heading', { name: 'Your results' })).toBeVisible()
+
+    await user.click(screen.getByRole('button', { name: 'New Passage' }))
+
+    expect(screen.queryByRole('heading', { name: 'Your results' })).not.toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Your typing' })).toHaveValue('')
+  })
+
+  it('sends only the attempted original-text portion for a timed test', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.selectOptions(screen.getByLabelText('Test mode'), '30')
+    await user.type(screen.getByRole('textbox', { name: 'Your typing' }), 'A calm')
+    await user.click(screen.getByRole('button', { name: 'Finish Test' }))
+    await waitFor(() => expect(analyzeTyping).toHaveBeenCalledOnce())
+
+    expect(analyzeTyping.mock.calls[0][0]).toMatchObject({
+      originalText: 'A calm',
+      typedText: 'A calm',
+    })
   })
 })
