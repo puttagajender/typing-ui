@@ -1,0 +1,25 @@
+:root {
+  font-family: Inter, "Avenir Next", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #24312e;
+  background: #edf3f0;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --color-primary: #0f766e;
+  --color-primary-dark: #0a5f59;
+  --color-accent: #e5ad32;
+  --color-heading: #172522;
+  --color-text-muted: #52615d;
+  --color-text-subtle: #6d7b77;
+  --color-border: #d7e1dd;
+  --color-border-soft: #e1e8e5;
+  --color-surface-soft: #f7f9f8;
+  --radius-large: 22px;
+  --shadow-card: 0 24px 65px rgba(24, 53, 46, 0.09), 0 2px 6px rgba(24, 53, 46, 0.03);
+}
+
+* { box-sizing: border-box; }
+html { min-width: 320px; min-height: 100%; }
+body { min-width: 320px; min-height: 100vh; margin: 0; background: radial-gradient(circle at 88% 4%, rgba(235, 183, 69, 0.18), transparent 28rem), radial-gradient(circle at 4% 70%, rgba(15, 118, 110, 0.08), transparent 30rem), linear-gradient(145deg, #fafcfb 0%, #e8f0ed 100%); }
+button, textarea { font: inherit; }
+::selection { background: #b7e1d8; color: #113a33; }
