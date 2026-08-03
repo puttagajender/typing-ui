@@ -14,6 +14,7 @@ export const CATEGORIES = [
   'Spring Boot',
   'SQL',
   'Git',
+  'Weak Keys',
 ]
 
 export const TEST_MODES = [

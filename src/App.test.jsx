@@ -506,4 +506,76 @@ describe('Typing Coach application', () => {
       totalCharactersTyped: 1,
     })
   })
+
+  it('displays weak keys, their summary, and suggested practice words', async () => {
+    const user = userEvent.setup()
+    analyzeTyping.mockResolvedValue({
+      ...completeResult,
+      weakKeySummary: 'The letters r and t need more consistent control.',
+      weakKeys: [
+        { character: 'r', mistakeCount: 4, mistakePercentage: 40, dominantMistakeType: 'WRONG_CHARACTER' },
+        { character: 't', mistakeCount: 3, mistakePercentage: 30, dominantMistakeType: 'MISSING_CHARACTER' },
+      ],
+      suggestedPracticeWords: ['return', 'target', 'starter'],
+    })
+    render(<App />)
+
+    await user.type(screen.getByRole('textbox', { name: 'Your typing' }), 'A')
+    await user.click(screen.getByRole('button', { name: 'Finish Test' }))
+
+    const weakSection = (await screen.findByRole('heading', { name: 'Keys to Improve' })).closest('section')
+    expect(within(weakSection).getByText('The letters r and t need more consistent control.')).toBeVisible()
+    expect(within(weakSection).getByText('40.0%')).toBeVisible()
+    expect(within(weakSection).getByText('Wrong character')).toBeVisible()
+    expect(within(weakSection).getByRole('heading', { name: 'Recommended Practice Words' })).toBeVisible()
+    expect(within(weakSection).getByText('return')).toBeVisible()
+    expect(within(weakSection).getByText('target')).toBeVisible()
+  })
+
+  it('shows a positive state when no weak keys are returned', async () => {
+    const user = userEvent.setup()
+    analyzeTyping.mockResolvedValue({ ...completeResult, weakKeys: [] })
+    render(<App />)
+
+    await user.type(screen.getByRole('textbox', { name: 'Your typing' }), 'A')
+    await user.click(screen.getByRole('button', { name: 'Finish Test' }))
+
+    expect(await screen.findByText('No major weak keys detected in this session.')).toBeVisible()
+    expect(screen.queryByRole('heading', { name: 'Keys to Improve' })).not.toBeInTheDocument()
+  })
+
+  it('creates and focuses a fresh 60-second Weak Keys session locally', async () => {
+    const user = userEvent.setup()
+    analyzeTyping.mockResolvedValue({
+      ...completeResult,
+      weakKeys: [{ character: 'r', mistakeCount: 4, mistakePercentage: 40, dominantMistakeType: 'WRONG_CHARACTER' }],
+      suggestedPracticeWords: ['return', 'array', 'error'],
+    })
+    render(<App />)
+
+    await user.type(screen.getByRole('textbox', { name: 'Your typing' }), 'A')
+    await user.click(screen.getByRole('button', { name: 'Finish Test' }))
+    await user.click(await screen.findByRole('button', { name: 'Practice Weak Keys' }))
+
+    expect(screen.queryByRole('heading', { name: 'Your results' })).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Category')).toHaveValue('Weak Keys')
+    expect(screen.getByLabelText('Duration')).toHaveValue('60')
+    expect(screen.getByText('60.0')).toBeVisible()
+    expect(screen.getByLabelText('Text to type')).toHaveTextContent('return array error')
+    expect(screen.getByRole('textbox', { name: 'Your typing' })).toHaveValue('')
+    expect(screen.getByRole('textbox', { name: 'Your typing' })).toHaveFocus()
+  })
+
+  it('does not crash when all optional weak-key fields are absent', async () => {
+    const user = userEvent.setup()
+    analyzeTyping.mockResolvedValue(completeResult)
+    render(<App />)
+
+    await user.type(screen.getByRole('textbox', { name: 'Your typing' }), 'A')
+    await user.click(screen.getByRole('button', { name: 'Finish Test' }))
+
+    expect(await screen.findByRole('heading', { name: 'Your results' })).toBeVisible()
+    expect(screen.getByText('No major weak keys detected in this session.')).toBeVisible()
+    expect(screen.queryByRole('heading', { name: 'Recommended Practice Words' })).not.toBeInTheDocument()
+  })
 })

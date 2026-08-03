@@ -31,10 +31,11 @@ const resolveDifficulty = (currentDifficulty, action) => {
 }
 
 const resolveCategory = (currentCategory, action) => {
-  const currentIndex = Math.max(0, CATEGORIES.indexOf(currentCategory))
-  if (action === 'next') return CATEGORIES[Math.min(currentIndex + 1, CATEGORIES.length - 1)]
+  const recommendationCategories = CATEGORIES.filter((category) => category !== 'Weak Keys')
+  const currentIndex = Math.max(0, recommendationCategories.indexOf(currentCategory))
+  if (action === 'next') return recommendationCategories[Math.min(currentIndex + 1, recommendationCategories.length - 1)]
   if (action === 'foundations') return 'General English'
-  return CATEGORIES[currentIndex]
+  return recommendationCategories[currentIndex]
 }
 
 export function createCoachRecommendation(result, currentDifficulty, currentCategory = 'General English') {

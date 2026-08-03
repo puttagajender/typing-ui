@@ -8,6 +8,7 @@ import TestControls from './components/TestControls'
 import TestSettings from './components/TestSettings'
 import TypingInput from './components/TypingInput'
 import TypingPassage from './components/TypingPassage'
+import WeakKeyCoach from './components/WeakKeyCoach'
 import { CATEGORIES, DIFFICULTIES } from './data/passages'
 import { analyzeTyping } from './services/typingApi'
 import { createCoachRecommendation } from './services/recommendationEngine'
@@ -16,6 +17,7 @@ import { loadPracticeSettings, savePracticeSettings } from './services/practiceS
 import { loadProgress, saveProgress, updateProgress } from './services/progressStorage'
 import { getAttemptedOriginalText } from './utils/alignText'
 import { selectPassage } from './utils/passageSelection'
+import { buildWeakKeyPassage } from './utils/weakKeyPractice'
 
 const validDifficulties = DIFFICULTIES.map((item) => item.value)
 
@@ -75,6 +77,7 @@ function App() {
     if (result) {
       console.log('Result displayed')
       window.requestAnimationFrame(() => {
+        resultsRef.current?.focus?.({ preventScroll: true })
         resultsRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
       })
     }
@@ -258,6 +261,23 @@ function App() {
     window.requestAnimationFrame(() => inputRef.current?.focus())
   }
 
+  const practiceWeakKeys = (suggestedWords) => {
+    const practiceText = buildWeakKeyPassage(suggestedWords)
+    if (!practiceText) return
+
+    setCategory('Weak Keys')
+    setTestMode('60')
+    setCurrentPassage({
+      id: `weak-keys-${Date.now()}`,
+      category: 'Weak Keys',
+      difficulty,
+      text: practiceText,
+    })
+    setStoredRecommendation(null)
+    resetAttempt(60)
+    window.requestAnimationFrame(() => inputRef.current?.focus())
+  }
+
   const testEnded = isSubmitting || Boolean(result) || Boolean(completionAnnouncement)
   const displayedTime = timedDuration ? (remainingSeconds ?? timedDuration) : elapsedSeconds
   const levelLabel = DIFFICULTIES.find((item) => item.value === difficulty)?.label
@@ -346,6 +366,7 @@ function App() {
           <>
             <div className="notification notification-success" role="status"><span className="notification-icon" aria-hidden="true">✓</span><div><strong>Analysis complete</strong><span>Your typing results are ready.</span></div></div>
             <ResultsPanel ref={resultsRef} result={result} />
+            <WeakKeyCoach result={result} onPractice={practiceWeakKeys} />
             <CoachRecommendation recommendation={recommendation} onContinue={() => continueRecommendedPractice(recommendation)} onPracticeAgain={restartTest} />
           </>
         )}
