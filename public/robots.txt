@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://typing-ui.vercel.app/sitemap.xml

@@ -1,0 +1,17 @@
+{
+  "name": "Typing Coach",
+  "short_name": "Typing Coach",
+  "description": "Improve typing speed and accuracy with focused practice and live character feedback.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#edf3f0",
+  "theme_color": "#0f766e",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
