@@ -31,6 +31,8 @@ const deferred = () => {
 
 describe('Typing Coach application', () => {
   beforeEach(() => {
+    window.localStorage.clear()
+    vi.spyOn(Math, 'random').mockReturnValue(0)
     vi.spyOn(console, 'log').mockImplementation(() => {})
     vi.spyOn(console, 'error').mockImplementation(() => {})
     analyzeTyping.mockReset()
@@ -45,7 +47,11 @@ describe('Typing Coach application', () => {
     expect(screen.getByRole('heading', { name: 'Typing Coach' })).toBeVisible()
     expect(screen.getByLabelText('Text to type')).toHaveTextContent(PASSAGE)
     expect(screen.getByRole('textbox', { name: 'Your typing' })).toBeEnabled()
-    expect(screen.getByText('0.0')).toBeVisible()
+    expect(screen.getByText('60.0')).toBeVisible()
+    expect(screen.getByLabelText('Level')).toHaveValue('BEGINNER')
+    expect(screen.getByLabelText('Category')).toHaveValue('General English')
+    expect(screen.getByLabelText('Duration')).toHaveValue('60')
+    expect(screen.getByText('Start typing to begin')).toBeVisible()
     expect(screen.getByRole('button', { name: 'Finish Test' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Restart Test' })).toBeEnabled()
   })
@@ -108,7 +114,7 @@ describe('Typing Coach application', () => {
     await user.click(screen.getByRole('button', { name: 'Restart Test' }))
 
     expect(input).toHaveValue('')
-    expect(screen.getByText('0.0')).toBeVisible()
+    expect(screen.getByText('60.0')).toBeVisible()
     expect(screen.getByRole('button', { name: 'Finish Test' })).toBeDisabled()
   })
 
@@ -159,12 +165,12 @@ describe('Typing Coach application', () => {
     analyzeTyping.mockResolvedValue(completeResult)
     render(<App />)
 
-    await user.type(screen.getByRole('textbox', { name: 'Your typing' }), 'Ev')
+    await user.type(screen.getByRole('textbox', { name: 'Your typing' }), PASSAGE.slice(0, 2))
     await user.click(screen.getByRole('button', { name: 'Finish Test' }))
     await waitFor(() => expect(analyzeTyping).toHaveBeenCalledOnce())
 
     const request = analyzeTyping.mock.calls[0][0]
-    expect(request).toMatchObject({ originalText: PASSAGE, typedText: 'Ev' })
+    expect(request).toMatchObject({ originalText: PASSAGE.slice(0, 2), typedText: PASSAGE.slice(0, 2) })
     expect(new Date(request.startedAt).toISOString()).toBe(request.startedAt)
     expect(new Date(request.completedAt).toISOString()).toBe(request.completedAt)
   })
@@ -210,7 +216,8 @@ describe('Typing Coach application', () => {
     await user.type(screen.getByRole('textbox', { name: 'Your typing' }), 'E')
     await user.click(screen.getByRole('button', { name: 'Finish Test' }))
 
-    expect(await screen.findByText('37.8')).toBeVisible()
+    const resultsPanel = (await screen.findByRole('heading', { name: 'Your results' })).closest('section')
+    expect(within(resultsPanel).getByText('37.8')).toBeVisible()
   })
 
   it('displays zero mistake counts and distinguishes missing result fields', async () => {
@@ -264,10 +271,12 @@ describe('Typing Coach application', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.selectOptions(screen.getByLabelText('Difficulty'), 'advanced')
+    await user.selectOptions(screen.getByLabelText('Level'), 'ADVANCED')
 
-    expect(screen.getByLabelText('Difficulty')).toHaveValue('advanced')
-    expect(screen.getByLabelText('Text to type')).toHaveTextContent(PASSAGES.advanced[0])
+    expect(screen.getByLabelText('Level')).toHaveValue('ADVANCED')
+    expect(screen.getByLabelText('Text to type')).toHaveTextContent(
+      PASSAGES.find((passage) => passage.category === 'General English' && passage.difficulty === 'ADVANCED').text,
+    )
   })
 
   it('selects a new passage without immediately repeating the current passage', async () => {
@@ -277,7 +286,9 @@ describe('Typing Coach application', () => {
 
     await user.click(screen.getByRole('button', { name: 'New Passage' }))
 
-    expect(screen.getByLabelText('Text to type')).toHaveTextContent(PASSAGES.beginner[1])
+    expect(screen.getByLabelText('Text to type')).toHaveTextContent(
+      PASSAGES.find((passage) => passage.id === 'general-english-2').text,
+    )
     expect(screen.getByLabelText('Text to type').textContent).not.toBe(initialPassage)
   })
 
@@ -289,27 +300,30 @@ describe('Typing Coach application', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.selectOptions(screen.getByLabelText('Test mode'), mode)
+    await user.selectOptions(screen.getByLabelText('Duration'), mode)
 
-    expect(screen.getByLabelText('Test mode')).toHaveValue(mode)
+    expect(screen.getByLabelText('Duration')).toHaveValue(mode)
     expect(screen.getByText(displayedSeconds)).toBeVisible()
     expect(screen.getByText('seconds remaining')).toBeVisible()
   })
 
   it('automatically submits complete-passage mode when the passage is finished', async () => {
+    const user = userEvent.setup()
     render(<App />)
 
-    fireEvent.change(screen.getByRole('textbox', { name: 'Your typing' }), { target: { value: PASSAGE } })
+    await user.selectOptions(screen.getByLabelText('Duration'), 'complete')
+    const completePassage = screen.getByLabelText('Text to type').textContent
+    fireEvent.change(screen.getByRole('textbox', { name: 'Your typing' }), { target: { value: completePassage } })
 
     await waitFor(() => expect(analyzeTyping).toHaveBeenCalledOnce())
-    expect(analyzeTyping.mock.calls[0][0]).toMatchObject({ originalText: PASSAGE, typedText: PASSAGE })
+    expect(analyzeTyping.mock.calls[0][0]).toMatchObject({ originalText: completePassage, typedText: completePassage })
   })
 
   it('automatically submits when a 30-second test reaches zero', async () => {
     vi.useFakeTimers()
     render(<App />)
 
-    fireEvent.change(screen.getByLabelText('Test mode'), { target: { value: '30' } })
+    fireEvent.change(screen.getByLabelText('Duration'), { target: { value: '30' } })
     fireEvent.change(screen.getByRole('textbox', { name: 'Your typing' }), { target: { value: 'A calm' } })
     await act(async () => vi.advanceTimersByTime(30100))
 
@@ -321,11 +335,11 @@ describe('Typing Coach application', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.selectOptions(screen.getByLabelText('Test mode'), '60')
+    await user.selectOptions(screen.getByLabelText('Duration'), '60')
     await user.type(screen.getByRole('textbox', { name: 'Your typing' }), 'A')
     await user.click(screen.getByRole('button', { name: 'Restart Test' }))
 
-    expect(screen.getByLabelText('Test mode')).toHaveValue('60')
+    expect(screen.getByLabelText('Duration')).toHaveValue('60')
     expect(screen.getByRole('textbox', { name: 'Your typing' })).toHaveValue('')
     expect(screen.getByText('60.0')).toBeVisible()
   })
@@ -348,14 +362,148 @@ describe('Typing Coach application', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.selectOptions(screen.getByLabelText('Test mode'), '30')
-    await user.type(screen.getByRole('textbox', { name: 'Your typing' }), 'A calm')
+    await user.selectOptions(screen.getByLabelText('Duration'), '30')
+    const attemptedText = screen.getByLabelText('Text to type').textContent.slice(0, 6)
+    await user.type(screen.getByRole('textbox', { name: 'Your typing' }), attemptedText)
     await user.click(screen.getByRole('button', { name: 'Finish Test' }))
     await waitFor(() => expect(analyzeTyping).toHaveBeenCalledOnce())
 
     expect(analyzeTyping.mock.calls[0][0]).toMatchObject({
-      originalText: 'A calm',
-      typedText: 'A calm',
+      originalText: attemptedText,
+      typedText: attemptedText,
+    })
+  })
+
+  it('displays and stores a coach recommendation after a completed test', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.type(screen.getByRole('textbox', { name: 'Your typing' }), 'A')
+    await user.click(screen.getByRole('button', { name: 'Finish Test' }))
+
+    expect(await screen.findByRole('heading', { name: 'Your next best step' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Continue Recommended Practice' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Practice Again' })).toBeVisible()
+    await waitFor(() => expect(window.localStorage.getItem('typing-coach:last-recommendation')).not.toBeNull())
+  })
+
+  it('continues with the recommended duration and clears the completed result', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.type(screen.getByRole('textbox', { name: 'Your typing' }), 'A')
+    const completedPassage = screen.getByLabelText('Text to type').textContent
+    await user.click(screen.getByRole('button', { name: 'Finish Test' }))
+    await user.click(await screen.findByRole('button', { name: 'Continue Recommended Practice' }))
+
+    expect(screen.getByLabelText('Duration')).toHaveValue('60')
+    expect(screen.queryByRole('heading', { name: 'Your results' })).not.toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Your typing' })).toHaveValue('')
+    expect(screen.getByLabelText('Text to type').textContent).not.toBe(completedPassage)
+  })
+
+  it('welcomes a returning user with their stored recommendation', () => {
+    window.localStorage.setItem('typing-coach:last-recommendation', JSON.stringify({
+      nextDifficulty: 'INTERMEDIATE',
+      suggestedDuration: 60,
+      suggestedCategory: 'Common Words',
+      explanation: 'Keep building a reliable rhythm.',
+    }))
+
+    render(<App />)
+
+    const welcomeCard = screen.getByRole('heading', { name: 'Your recommended next practice is ready.' }).closest('aside')
+    expect(within(welcomeCard).getByText('Rabbit — Intermediate')).toBeVisible()
+  })
+
+  it('loads passages from the manually selected category and level', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.selectOptions(screen.getByLabelText('Category'), 'Java')
+    await user.selectOptions(screen.getByLabelText('Level'), 'INTERMEDIATE')
+
+    const shownText = screen.getByLabelText('Text to type').textContent
+    expect(PASSAGES.some((passage) =>
+      passage.category === 'Java' && passage.difficulty === 'INTERMEDIATE' && passage.text === shownText,
+    )).toBe(true)
+  })
+
+  it('confirms before discarding an active test for a manual selection', async () => {
+    const user = userEvent.setup()
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(false).mockReturnValueOnce(true)
+    render(<App />)
+
+    await user.type(screen.getByRole('textbox', { name: 'Your typing' }), 'A')
+    await user.selectOptions(screen.getByLabelText('Category'), 'Git')
+    expect(screen.getByLabelText('Category')).toHaveValue('General English')
+    expect(screen.getByRole('textbox', { name: 'Your typing' })).toHaveValue('A')
+
+    await user.selectOptions(screen.getByLabelText('Category'), 'Git')
+    expect(screen.getByLabelText('Category')).toHaveValue('Git')
+    expect(screen.getByRole('textbox', { name: 'Your typing' })).toHaveValue('')
+    expect(confirm).toHaveBeenCalledTimes(2)
+  })
+
+  it('shows and validates a custom duration', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.selectOptions(screen.getByLabelText('Duration'), 'custom')
+    const customInput = screen.getByLabelText('Custom seconds')
+    expect(customInput).toHaveValue(60)
+
+    fireEvent.change(customInput, { target: { value: '10' } })
+    expect(customInput).toHaveValue(60)
+    fireEvent.change(customInput, { target: { value: '180' } })
+    expect(customInput).toHaveValue(180)
+  })
+
+  it('handles corrupted localStorage without crashing', () => {
+    window.localStorage.setItem('typing-coach:practice-settings', '{invalid')
+    window.localStorage.setItem('typing-coach:last-recommendation', '{invalid')
+
+    render(<App />)
+
+    expect(screen.getByLabelText('Level')).toHaveValue('BEGINNER')
+    expect(screen.getByLabelText('Category')).toHaveValue('General English')
+    expect(screen.queryByText('Your recommended next practice is ready.')).not.toBeInTheDocument()
+  })
+
+  it('continues a welcome-back recommendation with all expected settings', async () => {
+    const user = userEvent.setup()
+    window.localStorage.setItem('typing-coach:last-recommendation', JSON.stringify({
+      nextDifficulty: 'ADVANCED',
+      suggestedDuration: 120,
+      suggestedCategory: 'SQL',
+      explanation: 'Continue with a focused technical session.',
+    }))
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: 'Continue Recommendation' }))
+
+    expect(screen.getByLabelText('Level')).toHaveValue('ADVANCED')
+    expect(screen.getByLabelText('Category')).toHaveValue('SQL')
+    expect(screen.getByLabelText('Duration')).toHaveValue('120')
+    const shownText = screen.getByLabelText('Text to type').textContent
+    expect(PASSAGES.some((passage) => passage.category === 'SQL' && passage.difficulty === 'ADVANCED' && passage.text === shownText)).toBe(true)
+  })
+
+  it('updates and persists the local progress dashboard after a completed test', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    expect(screen.getByText('Tests Completed').nextElementSibling).toHaveTextContent('0')
+    await user.type(screen.getByRole('textbox', { name: 'Your typing' }), 'A')
+    await user.click(screen.getByRole('button', { name: 'Finish Test' }))
+    await screen.findByRole('heading', { name: 'Your results' })
+
+    expect(screen.getByText('Tests Completed').nextElementSibling).toHaveTextContent('1')
+    expect(screen.getByText('Best WPM').nextElementSibling).toHaveTextContent('42.3')
+    expect(screen.getByText('Average Accuracy').nextElementSibling).toHaveTextContent('96.4%')
+    expect(JSON.parse(window.localStorage.getItem('typing-coach:progress'))).toMatchObject({
+      totalTestsCompleted: 1,
+      totalCharactersTyped: 1,
     })
   })
 })

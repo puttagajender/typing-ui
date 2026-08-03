@@ -21,7 +21,7 @@ const getSummary = (accuracy) => {
   return 'Accuracy needs improvement — slow down and focus on correct keys.'
 }
 
-const ResultsPanel = forwardRef(function ResultsPanel({ result, onTryAgain }, ref) {
+const ResultsPanel = forwardRef(function ResultsPanel({ result }, ref) {
   const correctWpmProperty = hasOwnValue(result, 'correctWpm') ? 'correctWpm' : 'wpm'
   const metrics = [
     ['Correct WPM', formatDecimal(result, correctWpmProperty)],
@@ -43,7 +43,6 @@ const ResultsPanel = forwardRef(function ResultsPanel({ result, onTryAgain }, re
           <h2 id="results-heading">Your results</h2>
           {summary && <p className="result-summary">{summary}</p>}
         </div>
-        <button className="button button-primary" type="button" onClick={onTryAgain}>Try Again</button>
       </div>
       <dl className="result-grid">
         {metrics.map(([label, value], index) => (

@@ -1,29 +1,55 @@
-function TestSettings({ difficulty, testMode, onDifficultyChange, onTestModeChange, onNewPassage, disabled }) {
+import { CATEGORIES, DIFFICULTIES, TEST_MODES } from '../data/passages'
+
+function TestSettings({
+  difficulty,
+  category,
+  testMode,
+  customDuration,
+  onDifficultyChange,
+  onCategoryChange,
+  onTestModeChange,
+  onCustomDurationChange,
+  onNewPassage,
+  disabled,
+}) {
   return (
     <section className="test-settings" aria-labelledby="settings-heading">
-      <div>
-        <p className="eyebrow">Test settings</p>
-        <h3 id="settings-heading">Choose your challenge</h3>
+      <div className="settings-heading">
+        <p className="eyebrow">Choose practice</p>
+        <h2 id="settings-heading">Practice settings</h2>
       </div>
       <div className="settings-controls">
         <label>
-          <span>Difficulty</span>
+          <span>Level</span>
           <select value={difficulty} onChange={onDifficultyChange} disabled={disabled}>
-            <option value="beginner">Beginner</option>
-            <option value="intermediate">Intermediate</option>
-            <option value="advanced">Advanced</option>
-            <option value="programming">Programming</option>
+            {DIFFICULTIES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
           </select>
         </label>
         <label>
-          <span>Test mode</span>
-          <select value={testMode} onChange={onTestModeChange} disabled={disabled}>
-            <option value="complete">Complete Passage</option>
-            <option value="30">30 Seconds</option>
-            <option value="60">60 Seconds</option>
-            <option value="120">120 Seconds</option>
+          <span>Category</span>
+          <select value={category} onChange={onCategoryChange} disabled={disabled}>
+            {CATEGORIES.map((item) => <option key={item} value={item}>{item}</option>)}
           </select>
         </label>
+        <label>
+          <span>Duration</span>
+          <select value={testMode} onChange={onTestModeChange} disabled={disabled}>
+            {TEST_MODES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+          </select>
+        </label>
+        {testMode === 'custom' && (
+          <label className="custom-duration-field">
+            <span>Custom seconds</span>
+            <input
+              type="number"
+              min="15"
+              max="300"
+              value={customDuration}
+              onChange={onCustomDurationChange}
+              disabled={disabled}
+            />
+          </label>
+        )}
         <button className="button button-secondary new-passage-button" type="button" onClick={onNewPassage} disabled={disabled}>
           New Passage
         </button>
