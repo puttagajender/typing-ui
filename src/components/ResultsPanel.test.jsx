@@ -12,31 +12,44 @@ const result = {
   wrongCharacterCount: 0,
   missingCharacterCount: 0,
   extraCharacterCount: 0,
+  cpm: 228.4,
 }
 
-describe('result screen', () => {
-  it('makes Correct WPM the single visually primary metric', () => {
-    render(<ResultsPanel result={result} />)
-    const primaryMetric = screen.getByText('Correct WPM').closest('[data-primary-metric="true"]')
+const metricValue = (label) => screen.getByText(label).closest('dt').nextElementSibling
 
-    expect(primaryMetric).toBeInTheDocument()
-    expect(within(primaryMetric).getByText('42.3')).toBeVisible()
-    expect(document.querySelectorAll('[data-primary-metric="true"]')).toHaveLength(1)
+describe('result screen', () => {
+  it('makes Correct WPM and Accuracy the primary metrics', () => {
+    render(<ResultsPanel result={result} />)
+    const primaryMetrics = screen.getByLabelText('Primary typing statistics')
+
+    expect(within(primaryMetrics).getByText('42.3')).toBeVisible()
+    expect(within(primaryMetrics).getByText('96.5%')).toBeVisible()
+    expect(primaryMetrics.querySelectorAll('.result-primary-metric')).toHaveLength(2)
   })
 
   it('formats valid zero counts as zero and optional values as Not available', () => {
     render(<ResultsPanel result={{ ...result, grossWpm: null, extraCharacterCount: undefined }} />)
 
-    expect(screen.getByText('Total Mistakes').nextElementSibling).toHaveTextContent('0')
-    expect(screen.getByText('Wrong Characters').nextElementSibling).toHaveTextContent('0')
-    expect(screen.getByText('Missing Characters').nextElementSibling).toHaveTextContent('0')
-    expect(screen.getByText('Gross WPM').nextElementSibling).toHaveTextContent('Not available')
-    expect(screen.getByText('Extra Characters').nextElementSibling).toHaveTextContent('Not available')
+    expect(metricValue('Mistakes')).toHaveTextContent('0')
+    expect(metricValue('Wrong Characters')).toHaveTextContent('0')
+    expect(metricValue('Missing Characters')).toHaveTextContent('0')
+    expect(metricValue('Gross WPM')).toHaveTextContent('Not available')
+    expect(metricValue('Extra Characters')).toHaveTextContent('Not available')
   })
 
   it('renders safely when optional result fields are omitted', () => {
     expect(() => render(<ResultsPanel result={{ correctWpm: 20, accuracy: 80 }} />)).not.toThrow()
     expect(screen.getAllByText('Not available').length).toBeGreaterThan(0)
+  })
+
+  it('displays CPM and accessible explanations for every statistic', () => {
+    render(<ResultsPanel result={result} />)
+
+    expect(metricValue('CPM')).toHaveTextContent('228.4')
+    expect(screen.getByRole('button', { name: 'About Correct WPM' })).toHaveAccessibleDescription('The number of correctly typed words per minute.')
+    expect(screen.getByRole('button', { name: 'About Gross WPM' })).toHaveAccessibleDescription('Your overall typing speed before deducting mistakes.')
+    expect(screen.getByRole('button', { name: 'About Accuracy' })).toHaveAccessibleDescription('Percentage of correctly typed characters.')
+    expect(screen.getAllByRole('tooltip')).toHaveLength(9)
   })
 
   it('shows recommendation details and wires all actions', () => {
@@ -72,7 +85,7 @@ describe('result screen', () => {
 
   it('uses responsive containers that do not force a fixed viewport width', () => {
     const { container } = render(<ResultsPanel result={result} />)
-    expect(container.querySelector('.result-overview')).toBeInTheDocument()
+    expect(container.querySelector('.result-primary-metrics')).toBeInTheDocument()
     expect(container.querySelectorAll('[style*="width"]')).toHaveLength(0)
   })
 })

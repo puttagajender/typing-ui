@@ -202,10 +202,10 @@ describe('Typing Coach application', () => {
     expect(within(panel).getByText('42.3')).toBeVisible()
     expect(within(panel).getByText('96.4%')).toBeVisible()
     expect(within(panel).getByText('31.2 seconds')).toBeVisible()
-    expect(within(panel).getByText('Total Mistakes').nextElementSibling).toHaveTextContent('4')
-    expect(within(panel).getByText('Wrong Characters').nextElementSibling).toHaveTextContent('2')
-    expect(within(panel).getByText('Missing Characters').nextElementSibling).toHaveTextContent('1')
-    expect(within(panel).getByText('Extra Characters').nextElementSibling).toHaveTextContent('1')
+    expect(within(panel).getByText('Mistakes').closest('dt').nextElementSibling).toHaveTextContent('4')
+    expect(within(panel).getByText('Wrong Characters').closest('dt').nextElementSibling).toHaveTextContent('2')
+    expect(within(panel).getByText('Missing Characters').closest('dt').nextElementSibling).toHaveTextContent('1')
+    expect(within(panel).getByText('Extra Characters').closest('dt').nextElementSibling).toHaveTextContent('1')
   })
 
   it('uses wpm when correctWpm is absent', async () => {
@@ -237,11 +237,11 @@ describe('Typing Coach application', () => {
     await user.click(screen.getByRole('button', { name: 'Finish Test' }))
     const panel = (await screen.findByRole('heading', { name: 'Your results' })).closest('section')
 
-    expect(within(panel).getByText('Gross WPM').nextElementSibling).toHaveTextContent('Not available')
-    expect(within(panel).getByText('Total Mistakes').nextElementSibling).toHaveTextContent('0')
-    expect(within(panel).getByText('Wrong Characters').nextElementSibling).toHaveTextContent('0')
-    expect(within(panel).getByText('Missing Characters').nextElementSibling).toHaveTextContent('0')
-    expect(within(panel).getByText('Extra Characters').nextElementSibling).toHaveTextContent('Not available')
+    expect(within(panel).getByText('Gross WPM').closest('dt').nextElementSibling).toHaveTextContent('Not available')
+    expect(within(panel).getByText('Mistakes').closest('dt').nextElementSibling).toHaveTextContent('0')
+    expect(within(panel).getByText('Wrong Characters').closest('dt').nextElementSibling).toHaveTextContent('0')
+    expect(within(panel).getByText('Missing Characters').closest('dt').nextElementSibling).toHaveTextContent('0')
+    expect(within(panel).getByText('Extra Characters').closest('dt').nextElementSibling).toHaveTextContent('Not available')
     expect(screen.getByText('Excellent accuracy. You are ready for a harder passage.')).toBeVisible()
   })
 
