@@ -1,29 +1,30 @@
 function LandingHero() {
-  const scrollToTest = () => {
-    document.getElementById('typing-test')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-
   return (
-    <header className="landing-hero">
-      <div className="content-shell hero-layout">
-        <div className="hero-copy">
-          <p className="eyebrow">Accuracy first. Speed follows.</p>
-          <h1>Typing Coach</h1>
-          <p className="hero-subtitle">
-            Build reliable Touch Typing habits with a focused Typing Speed Test that measures your WPM,
-            Typing Accuracy, and mistakes.
+    <header className="product-hero">
+      <div className="content-shell product-hero-inner">
+        <div className="product-hero-copy">
+          <p className="eyebrow">Typing Coach</p>
+          <h1>Master Touch Typing with Confidence</h1>
+          <p className="product-hero-subtitle">
+            Learn touch typing from beginner to advanced. Practice with intelligent recommendations, improve your accuracy, increase your typing speed and build lasting muscle memory.
           </p>
-          <button className="button button-primary hero-cta" type="button" onClick={scrollToTest}>
-            Start Typing Test
-          </button>
         </div>
-        <div className="hero-preview" aria-hidden="true">
-          <div className="preview-toolbar"><span /><span /><span /></div>
-          <p><mark>Practice</mark> a little every day to build <em>speed</em> and accuracy.</p>
-          <div className="preview-stats">
-            <span><strong>42.3</strong> WPM</span>
-            <span><strong>98.6%</strong> Accuracy</span>
+
+        <div className="product-hero-footer">
+          <div className="product-hero-actions">
+            <a className="button button-primary" href="#typing-test">Start Practicing</a>
+            <button className="button button-secondary" type="button" disabled>
+              Build Muscle Memory <span className="coming-soon">Coming Soon</span>
+            </button>
           </div>
+
+          <ul className="product-benefits" aria-label="Typing Coach benefits">
+            <li>Free Forever</li>
+            <li>No Registration Required</li>
+            <li>Instant Performance Analysis</li>
+            <li>Personalized Practice Recommendations</li>
+            <li>Beginner Friendly</li>
+          </ul>
         </div>
       </div>
     </header>

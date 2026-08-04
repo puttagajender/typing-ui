@@ -5,7 +5,7 @@ function ErrorMessage({ message, onRetry, onRestart }) {
     <div className="notification notification-error" role="alert">
       <span className="notification-icon" aria-hidden="true">!</span>
       <div>
-        <strong>We couldn&apos;t analyse your typing right now.</strong>
+        <strong>We couldn&apos;t prepare your improvement insights right now.</strong>
         <span>{message}</span>
         <div className="error-actions">
           {onRetry && <button className="button button-primary" type="button" onClick={onRetry}>Retry Analysis</button>}

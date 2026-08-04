@@ -44,7 +44,9 @@ describe('Typing Coach application', () => {
   it('shows the initial application, passage, accessible controls, and zero elapsed time', () => {
     render(<App />)
 
-    expect(screen.getByRole('heading', { name: 'Typing Coach' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Master Touch Typing with Confidence' })).toBeVisible()
+    expect(screen.getByRole('link', { name: 'Start Practicing' })).toHaveAttribute('href', '#typing-test')
+    expect(screen.getByRole('button', { name: 'Build Muscle Memory Coming Soon' })).toBeDisabled()
     expect(screen.getByLabelText('Text to type')).toHaveTextContent(PASSAGE)
     expect(screen.getByRole('textbox', { name: 'Your typing' })).toBeEnabled()
     expect(screen.getByText('60.0')).toBeVisible()

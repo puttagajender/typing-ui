@@ -17,7 +17,7 @@ const faqs = [
   },
   {
     question: 'Is Typing Coach free?',
-    answer: 'Yes. Typing Coach provides free typing practice and a typing speed test directly in your browser. You can practise different topics and levels, review WPM and accuracy, and repeat sessions without creating an account.',
+    answer: 'Yes. Typing Coach provides free online typing practice directly in your browser. You can practise different topics and levels, review WPM and accuracy, follow personalised guidance, and repeat sessions without creating an account.',
   },
 ]
 
@@ -25,17 +25,22 @@ function SeoContent() {
   return (
     <article className="seo-content" aria-label="Typing practice learning guide">
       <div className="seo-learning-grid">
-        <section className="seo-education-section" aria-labelledby="what-is-typing-coach">
-          <h2 id="what-is-typing-coach">What is Typing Coach?</h2>
+        <section className="seo-education-section about-typing-coach" aria-labelledby="about-typing-coach">
+          <h2 id="about-typing-coach">About Typing Coach</h2>
           <p>
-            Typing Coach is a free online typing practice tool designed to help beginners, students, professionals, and everyday computer users type with greater confidence. It presents a focused passage, tracks each keystroke, and gives clear feedback about speed, typing accuracy, and mistakes. You can select a level, practice topic, and test length before starting, so each session fits the skill you want to develop.
+            Typing Coach is a complete typing improvement platform for building accurate, confident keyboard skills. Unlike traditional typing speed tests that focus mainly on a final score, Typing Coach supports the full learning journey: learn, practice, improve, and eventually master touch typing.
           </p>
           <p>
-            Unlike a typing speed test that only reports a final number, Typing Coach keeps accuracy visible throughout the exercise and explains what to practise next. Correct, incorrect, missing, and extra characters are distinguished clearly, making it easier to notice patterns without interrupting your rhythm. The result is a calm environment for learning touch typing rather than racing against distracting effects.
+            Focused passages, multiple difficulty levels, clear performance analysis, and personalised recommendations help each practice session lead naturally to the next. The experience prioritises typing accuracy and consistent muscle memory before speed, making progress easier to understand and sustain.
           </p>
-          <p>
-            Because it runs in the browser, there is nothing to install. A short session can be used as a daily warm-up, a classroom exercise, or focused preparation for work that involves regular keyboard use. The goal is practical improvement: cleaner keystrokes, steadier pacing, and typing practice that becomes more useful over time.
-          </p>
+          <h3>Who is Typing Coach for?</h3>
+          <ul className="typing-coach-audiences">
+            <li>Students</li>
+            <li>Software Developers</li>
+            <li>Professionals</li>
+            <li>Office Workers</li>
+            <li>Beginners</li>
+          </ul>
         </section>
 
         <section className="seo-education-section" aria-labelledby="why-accuracy-matters">
@@ -47,14 +52,14 @@ function SeoContent() {
             Accurate practice also strengthens touch typing habits. When the correct fingers reach for keys consistently, movements require less conscious effort and your attention can stay on the idea or passage instead of the keyboard. Slowing down slightly during practice often produces smoother rhythm, fewer corrections, and better recall of key positions. Speed then develops naturally as those movements become automatic.
           </p>
           <p>
-            Compare Correct WPM with Gross WPM after each typing speed test. Gross WPM represents your raw pace, while Correct WPM reflects speed after mistakes are considered. If the gap is wide, focus on clean keystrokes before trying to type faster. As typing accuracy improves, the two values move closer together—a useful sign that your speed is becoming dependable.
+            Compare Correct WPM with Gross WPM after each practice session. Gross WPM represents your raw pace, while Correct WPM reflects speed after mistakes are considered. If the gap is wide, focus on clean keystrokes before trying to type faster. As typing accuracy improves, the two values move closer together—a useful sign that your speed is becoming dependable.
           </p>
         </section>
 
         <section className="seo-education-section" aria-labelledby="what-is-wpm">
           <h2 id="what-is-wpm">What is WPM?</h2>
           <p>
-            WPM means Words Per Minute, the standard measurement used in a typing speed test. For consistent comparison, one “word” is commonly treated as five typed characters, including spaces and punctuation. The character total is divided by five and adjusted for the length of the session. This makes WPM useful even when passages contain words of different lengths.
+            WPM means Words Per Minute, a standard measurement for tracking typing improvement. For consistent comparison, one “word” is commonly treated as five typed characters, including spaces and punctuation. The character total is divided by five and adjusted for the length of the session. This makes WPM useful even when passages contain words of different lengths.
           </p>
           <div className="wpm-definitions">
             <div>

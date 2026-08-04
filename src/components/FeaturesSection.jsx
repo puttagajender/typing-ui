@@ -1,6 +1,6 @@
 const features = [
   ['01', 'Live feedback', 'See correct, incorrect, missing, and extra characters while you type.'],
-  ['02', 'Clear WPM results', 'Complete a Typing Speed Test and review backend-calculated WPM and duration.'],
+  ['02', 'Clear improvement insights', 'Complete a practice session and review your WPM, accuracy, mistakes, and duration.'],
   ['03', 'Accuracy insights', 'Understand your Typing Accuracy with a simple breakdown of typing mistakes.'],
   ['04', 'Focused practice', 'Build Touch Typing consistency in a calm workspace without distractions.'],
 ]

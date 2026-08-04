@@ -8,7 +8,7 @@ describe('SeoContent', () => {
     render(<SeoContent />)
 
     expect(screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent)).toEqual([
-      'What is Typing Coach?',
+      'About Typing Coach',
       'Why Accuracy Matters',
       'What is WPM?',
       'How to Improve Your Typing Speed',

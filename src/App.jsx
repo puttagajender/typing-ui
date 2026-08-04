@@ -2,12 +2,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import CoachRecommendation from './components/CoachRecommendation'
 import ErrorMessage from './components/ErrorMessage'
+import LandingHero from './components/LandingHero'
 import PracticeSession from './components/PracticeSession'
 import ProgressDashboard from './components/ProgressDashboard'
 import ResultsPanel from './components/ResultsPanel'
 import SeoContent from './components/SeoContent'
 import TestSettings from './components/TestSettings'
+import TypingJourney from './components/TypingJourney'
 import WeakKeyCoach from './components/WeakKeyCoach'
+import WhyTypingCoach from './components/WhyTypingCoach'
 import { CATEGORIES, DIFFICULTIES } from './data/passages'
 import { analyzeTyping } from './services/typingApi'
 import { createCoachRecommendation } from './services/recommendationEngine'
@@ -121,7 +124,7 @@ function App() {
 
     if (automatic && timedDuration) {
       setHasTimedSessionEnded(true)
-      setCompletionAnnouncement('Time is up. Your test was submitted automatically.')
+      setCompletionAnnouncement('Time is up. Your practice was submitted automatically.')
     }
 
     const requestOriginalText = timedDuration
@@ -271,7 +274,7 @@ function App() {
     requestSessionChange(() => {
       loadPractice({ nextMode: 'custom', nextCustomDuration: requestedValue })
       setCustomDurationError(validationMessage)
-    }, 'change the test duration')
+    }, 'change the practice duration')
   }
 
   const handleNewPassage = () => {
@@ -329,15 +332,7 @@ function App() {
   return (
     <div className="app-page compact-app">
       <a className="skip-link" href="#main-content">Skip to main content</a>
-      <header className="compact-header">
-        <div className="content-shell compact-header-inner">
-          <div>
-            <p className="eyebrow">Accuracy first. Speed follows.</p>
-            <h1>Typing Coach</h1>
-          </div>
-          <p>Focused practice with clear feedback and a recommended next step.</p>
-        </div>
-      </header>
+      <LandingHero />
 
       <main id="main-content" className="compact-main content-shell" tabIndex="-1">
         {storedRecommendation && !result && !isWelcomeDismissed && (
@@ -363,7 +358,7 @@ function App() {
           difficulty={difficulty}
         />
 
-        <div ref={settingsRef} className="settings-focus-target" tabIndex="-1">
+        <div id="typing-test" ref={settingsRef} className="settings-focus-target" tabIndex="-1">
           <TestSettings
             difficulty={difficulty}
             category={category}
@@ -381,7 +376,7 @@ function App() {
           />
           {pendingSessionChange && (
             <div className="session-confirmation" role="alert" aria-labelledby="session-confirmation-title" aria-describedby="session-confirmation-description">
-              <div><strong id="session-confirmation-title">Keep your current attempt?</strong><span id="session-confirmation-description">Your progress will be cleared if you {pendingSessionChange.description}.</span></div>
+              <div><strong id="session-confirmation-title">Keep your current practice?</strong><span id="session-confirmation-description">Your current progress will be cleared if you {pendingSessionChange.description}.</span></div>
               <div className="session-confirmation-actions">
                 <button className="button button-secondary" type="button" onClick={() => setPendingSessionChange(null)}>Continue Current Test</button>
                 <button className="button button-danger" type="button" onClick={discardAndContinue}>Discard and Change Settings</button>
@@ -409,18 +404,20 @@ function App() {
         />
 
         <p className="sr-only" aria-live="assertive">{completionAnnouncement}</p>
-        {isSubmitting && <div className="notification notification-loading" role="status" aria-live="polite"><span className="loading-spinner" aria-hidden="true" /><div><strong>Analysing your typing...</strong><span>{isServiceWaking ? 'The analysis service is starting. This may take a few moments.' : 'Your results will be ready in a moment.'}</span></div></div>}
+        {isSubmitting && <div className="notification notification-loading" role="status" aria-live="polite"><span className="loading-spinner" aria-hidden="true" /><div><strong>Analysing your typing...</strong><span>{isServiceWaking ? 'Your typing coach is getting ready. This may take a few moments.' : 'Your improvement insights will be ready shortly.'}</span></div></div>}
         <ErrorMessage message={error} onRetry={retryAnalysis} onRestart={restartTest} />
         {result && (
           <>
-            <div className="notification notification-success" role="status"><span className="notification-icon" aria-hidden="true">✓</span><div><strong>Analysis complete</strong><span>Your typing results are ready.</span></div></div>
+            <div className="notification notification-success" role="status"><span className="notification-icon" aria-hidden="true">✓</span><div><strong>Practice analysed</strong><span>Your improvement insights are ready.</span></div></div>
             <ResultsPanel ref={resultsRef} result={result} />
             <WeakKeyCoach result={result} onPractice={practiceWeakKeys} />
             <CoachRecommendation recommendation={recommendation} onContinue={() => continueRecommendedPractice(recommendation)} onPracticeAgain={restartTest} onChooseAnother={chooseAnotherPractice} />
           </>
         )}
 
+        <WhyTypingCoach />
         <SeoContent />
+        <TypingJourney />
       </main>
 
       <footer className="compact-footer"><div className="content-shell"><strong>Typing Coach</strong><span>Practice deliberately. Improve consistently.</span></div></footer>

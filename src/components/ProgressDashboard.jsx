@@ -27,8 +27,8 @@ function ProgressDashboard({ progress, difficulty }) {
       </div>
       {!hasCompletedSession ? (
         <div className="progress-empty">
-          <strong>Your progress will appear after your first completed session.</strong>
-          <span>Complete a typing test to establish your starting point.</span>
+          <strong>Track your improvement from your first completed session.</strong>
+          <span>Complete a practice passage to establish your starting point.</span>
         </div>
       ) : <div className="dashboard-grid">
         <article className="dashboard-card dashboard-summary">
@@ -38,8 +38,8 @@ function ProgressDashboard({ progress, difficulty }) {
         </article>
         <article className="dashboard-card"><h3>Best WPM</h3><strong>{progress.bestCorrectWpm.toFixed(1)}</strong><span>Gross {progress.bestGrossWpm.toFixed(1)}</span></article>
         <article className="dashboard-card"><h3>Average Accuracy</h3><strong>{progress.averageAccuracy.toFixed(1)}%</strong><span>Average WPM {progress.averageCorrectWpm.toFixed(1)}</span></article>
-        <article className="dashboard-card"><h3>Tests Completed</h3><strong>{progress.totalTestsCompleted}</strong><span>Stored on this device</span></article>
-        <article className="dashboard-card"><h3>Total Practice Time</h3><strong>{formatTime(progress.totalTypingTime)}</strong><span>Across completed tests</span></article>
+        <article className="dashboard-card"><h3>Sessions Completed</h3><strong>{progress.totalTestsCompleted}</strong><span>Stored on this device</span></article>
+        <article className="dashboard-card"><h3>Total Practice Time</h3><strong>{formatTime(progress.totalTypingTime)}</strong><span>Across completed sessions</span></article>
         <article className="dashboard-card"><h3>Current Level</h3><strong className="dashboard-text-value">{level}</strong><span>Selected practice level</span></article>
       </div>}
     </section>

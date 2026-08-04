@@ -1,7 +1,7 @@
 {
   "name": "Typing Coach",
   "short_name": "Typing Coach",
-  "description": "Improve typing speed and accuracy with focused practice and live character feedback.",
+  "description": "Master touch typing with focused practice, personalised guidance, and clear progress insights.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#edf3f0",

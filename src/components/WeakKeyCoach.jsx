@@ -13,7 +13,7 @@ function WeakKeyCoach({ result, onPractice }) {
     : null
 
   if (!weakKeys.length) {
-    return <p className="weak-keys-positive" role="status">No major weak keys detected in this session.</p>
+    return <p className="weak-keys-positive" role="status">Your keystrokes were consistent across this practice.</p>
   }
 
   return (

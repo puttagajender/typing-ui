@@ -4,9 +4,9 @@ function SiteFooter() {
       <div className="content-shell footer-content">
         <div>
           <strong>Typing Coach</strong>
-          <p>Simple Typing Practice for better speed and accuracy.</p>
+          <p>Personalised typing improvement for better speed and accuracy.</p>
         </div>
-        <a href="#typing-test">Back to typing test</a>
+        <a href="#typing-test">Back to practice</a>
       </div>
     </footer>
   )

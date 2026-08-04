@@ -9,7 +9,7 @@ const METRIC_EXPLANATIONS = {
   'Wrong Characters': 'Characters typed differently from the passage.',
   'Missing Characters': 'Expected characters that were not typed.',
   'Extra Characters': 'Characters typed that were not in the passage.',
-  Duration: 'The total time spent typing this attempt.',
+  Duration: 'The total time spent on this practice session.',
 }
 
 const hasOwnValue = (result, property) =>
@@ -65,7 +65,7 @@ const ResultsPanel = forwardRef(function ResultsPanel({ result }, ref) {
 
   return (
     <section ref={ref} className="results-panel" aria-labelledby="results-heading" tabIndex="-1">
-      <div className="results-topline"><p className="eyebrow">Test complete</p><h2 id="results-heading">Your results</h2></div>
+      <div className="results-topline"><p className="eyebrow">Practice complete</p><h2 id="results-heading">Your improvement snapshot</h2></div>
       <dl className="result-primary-metrics" aria-label="Primary typing statistics">
         {primaryMetrics.map(([label, value]) => <Metric className="result-primary-metric" key={label} label={label} value={value} />)}
       </dl>
