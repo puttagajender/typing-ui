@@ -6,7 +6,7 @@ function LandingHero() {
           <p className="eyebrow">Typing Coach</p>
           <h1>Master Touch Typing with Confidence</h1>
           <p className="product-hero-subtitle">
-            Learn touch typing from beginner to advanced. Practice with intelligent recommendations, improve your accuracy, increase your typing speed and build lasting muscle memory.
+            Typing Coach is a complete touch typing improvement platform for beginners and professionals. Go beyond a one-off speed score with focused practice, instant analysis, and personalized next steps that build accuracy, speed, and lasting muscle memory.
           </p>
         </div>
 
@@ -16,6 +16,7 @@ function LandingHero() {
             <button className="button button-secondary" type="button" disabled>
               Build Muscle Memory <span className="coming-soon">Coming Soon</span>
             </button>
+            <p className="hero-next-step">Choose a level, type a passage, then follow your personalized next practice.</p>
           </div>
 
           <ul className="product-benefits" aria-label="Typing Coach benefits">

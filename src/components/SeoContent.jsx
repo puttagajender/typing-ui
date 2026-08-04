@@ -46,50 +46,44 @@ function SeoContent() {
         <section className="seo-education-section" aria-labelledby="why-accuracy-matters">
           <h2 id="why-accuracy-matters">Why Accuracy Matters</h2>
           <p>
-            Typing accuracy measures how closely your input matches the passage you intended to type. It matters because every correction costs time and breaks concentration. A fast burst of typing can look impressive, but repeated backspacing, missing characters, or incorrect words reduces the amount of useful work completed. Building accuracy first creates a reliable foundation for lasting speed.
+            Typing accuracy measures how closely your input matches the intended passage. Every correction costs time and interrupts concentration, so reliable keystrokes create a stronger foundation than rushed input. Practising at a controlled pace also reinforces correct touch typing movements and lasting muscle memory.
           </p>
           <p>
-            Accurate practice also strengthens touch typing habits. When the correct fingers reach for keys consistently, movements require less conscious effort and your attention can stay on the idea or passage instead of the keyboard. Slowing down slightly during practice often produces smoother rhythm, fewer corrections, and better recall of key positions. Speed then develops naturally as those movements become automatic.
-          </p>
-          <p>
-            Compare Correct WPM with Gross WPM after each practice session. Gross WPM represents your raw pace, while Correct WPM reflects speed after mistakes are considered. If the gap is wide, focus on clean keystrokes before trying to type faster. As typing accuracy improves, the two values move closer together—a useful sign that your speed is becoming dependable.
+            Compare Correct WPM with Gross WPM after each session. A wide gap suggests that mistakes are reducing useful speed; a narrow gap signals dependable accuracy. Build clean technique first, then increase pace gradually.
           </p>
         </section>
 
         <section className="seo-education-section" aria-labelledby="what-is-wpm">
           <h2 id="what-is-wpm">What is WPM?</h2>
           <p>
-            WPM means Words Per Minute, a standard measurement for tracking typing improvement. For consistent comparison, one “word” is commonly treated as five typed characters, including spaces and punctuation. The character total is divided by five and adjusted for the length of the session. This makes WPM useful even when passages contain words of different lengths.
+            WPM means Words Per Minute, a standard measure for tracking typing improvement. One “word” is commonly treated as five characters, making results comparable across passages and session lengths.
           </p>
           <div className="wpm-definitions">
             <div>
               <h3>Correct WPM</h3>
-              <p>Correct WPM estimates productive typing speed after mistakes are considered. It is the most useful headline number when comparing accurate practice sessions.</p>
+              <p>Productive typing speed after mistakes are considered.</p>
             </div>
             <div>
               <h3>Gross WPM</h3>
-              <p>Gross WPM measures overall pace before error deductions. Comparing it with Correct WPM shows how strongly mistakes affected the result.</p>
+              <p>Overall typing pace before error deductions.</p>
             </div>
             <div>
               <h3>CPM</h3>
-              <p>CPM means Characters Per Minute. It counts individual keystrokes and provides a more detailed view of speed than the five-character word convention.</p>
+              <p>Characters Per Minute, a direct count of typing pace.</p>
             </div>
           </div>
           <p>
-            No single WPM score defines a good typist. Your ideal target depends on your work, experience, and accuracy. Track results across several sessions under similar conditions and look for gradual, repeatable improvement instead of judging progress from one unusually fast attempt.
+            Use WPM as a trend, not a single verdict. Consistent improvement with strong accuracy matters more than one unusually fast attempt.
           </p>
         </section>
 
         <section className="seo-education-section" aria-labelledby="improve-typing-speed">
           <h2 id="improve-typing-speed">How to Improve Your Typing Speed</h2>
           <p>
-            Improving typing speed starts with consistent technique. Sit comfortably, keep your wrists relaxed, and place your fingers near the home row. Look at the passage rather than the keyboard whenever possible. During early touch typing practice, choose a pace that lets you press the intended key without guessing. Reliable movement is more valuable than rushing.
+            Improve typing speed through consistent technique: sit comfortably, keep your wrists relaxed, use the home row, and look at the passage instead of the keyboard. Choose a pace that keeps each keystroke deliberate.
           </p>
           <p>
-            Use short, regular sessions and give each one a clear purpose. You might focus on accuracy, practise unfamiliar punctuation, or repeat a topic containing difficult letter combinations. A focused 10-minute session several times a week usually builds stronger habits than a long session performed occasionally. Restart when your posture or concentration slips instead of reinforcing careless movement.
-          </p>
-          <p>
-            Review both WPM and errors after each session. If Gross WPM rises while Correct WPM remains unchanged, reduce your pace and aim for cleaner input. Increase difficulty only after typing accuracy feels stable. This gradual approach helps speed grow without sacrificing control and makes online typing practice easier to sustain. Progress may be uneven from day to day, so compare trends across multiple sessions rather than chasing a personal best every time.
+            Short, regular sessions build stronger habits than occasional long practice. Review WPM and errors, repeat difficult patterns, and increase difficulty only when accuracy feels stable. Small, repeatable gains are the goal.
           </p>
         </section>
       </div>

@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
+import AboutPage from './components/AboutPage'
 import CoachRecommendation from './components/CoachRecommendation'
 import ErrorMessage from './components/ErrorMessage'
 import LandingHero from './components/LandingHero'
 import PracticeSession from './components/PracticeSession'
+import PrivacyPolicyPage from './components/PrivacyPolicyPage'
 import ProgressDashboard from './components/ProgressDashboard'
 import ResultsPanel from './components/ResultsPanel'
 import SeoContent from './components/SeoContent'
+import SiteFooter from './components/SiteFooter'
 import TestSettings from './components/TestSettings'
 import TypingJourney from './components/TypingJourney'
 import WeakKeyCoach from './components/WeakKeyCoach'
@@ -27,7 +30,7 @@ const MOBILE_RESULTS_BREAKPOINT = 720
 const PASSAGE_SEPARATOR = ' '
 const TIMED_TEXT_BUFFER_CHARACTERS = 32
 
-function App() {
+function TypingCoachHome() {
   const [initialPractice] = useState(() => loadPracticeSettings(validDifficulties, CATEGORIES))
   const [difficulty, setDifficulty] = useState(initialPractice.difficulty)
   const [category, setCategory] = useState(initialPractice.category)
@@ -353,11 +356,6 @@ function App() {
           </aside>
         )}
 
-        <ProgressDashboard
-          progress={progress}
-          difficulty={difficulty}
-        />
-
         <div id="typing-test" ref={settingsRef} className="settings-focus-target" tabIndex="-1">
           <TestSettings
             difficulty={difficulty}
@@ -415,14 +413,26 @@ function App() {
           </>
         )}
 
+        <ProgressDashboard
+          progress={progress}
+          difficulty={difficulty}
+        />
+
         <WhyTypingCoach />
         <SeoContent />
         <TypingJourney />
       </main>
 
-      <footer className="compact-footer"><div className="content-shell"><strong>Typing Coach</strong><span>Practice deliberately. Improve consistently.</span></div></footer>
+      <SiteFooter />
     </div>
   )
+}
+
+function App() {
+  const path = window.location.pathname.replace(/\/$/, '')
+  if (path === '/about') return <AboutPage />
+  if (path === '/privacy') return <PrivacyPolicyPage />
+  return <TypingCoachHome />
 }
 
 export default App
