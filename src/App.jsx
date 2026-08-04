@@ -20,6 +20,8 @@ import { buildWeakKeyPassage } from './utils/weakKeyPractice'
 const validDifficulties = DIFFICULTIES.map((item) => item.value)
 const SERVICE_WAKE_DELAY_MS = 4000
 const MOBILE_RESULTS_BREAKPOINT = 720
+const PASSAGE_SEPARATOR = ' '
+const TIMED_TEXT_BUFFER_CHARACTERS = 32
 
 function App() {
   const [initialPractice] = useState(() => loadPracticeSettings(validDifficulties, CATEGORIES))
@@ -33,6 +35,7 @@ function App() {
     difficulty: initialPractice.difficulty,
     lastPassageId: initialPractice.lastPassageId,
   }))
+  const [sessionPassages, setSessionPassages] = useState(() => [currentPassage])
   const [typedText, setTypedText] = useState('')
   const [startedAt, setStartedAt] = useState(null)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
@@ -43,6 +46,7 @@ function App() {
   const [isServiceWaking, setIsServiceWaking] = useState(false)
   const [pendingSessionChange, setPendingSessionChange] = useState(null)
   const [completionAnnouncement, setCompletionAnnouncement] = useState('')
+  const [hasTimedSessionEnded, setHasTimedSessionEnded] = useState(false)
   const [storedRecommendation, setStoredRecommendation] = useState(loadRecommendation)
   const [isWelcomeDismissed, setIsWelcomeDismissed] = useState(false)
   const [progress, setProgress] = useState(loadProgress)
@@ -52,7 +56,7 @@ function App() {
   const resultsRef = useRef(null)
   const settingsRef = useRef(null)
 
-  const originalText = currentPassage?.text ?? ''
+  const originalText = sessionPassages.map((passage) => passage.text).join(PASSAGE_SEPARATOR)
   const timedDuration = testMode === 'complete'
     ? null
     : testMode === 'custom'
@@ -115,6 +119,7 @@ function App() {
     setElapsedSeconds((performance.now() - startPerformanceRef.current) / 1000)
 
     if (automatic && timedDuration) {
+      setHasTimedSessionEnded(true)
       setCompletionAnnouncement('Time is up. Your test was submitted automatically.')
     }
 
@@ -155,7 +160,8 @@ function App() {
     return () => window.clearInterval(intervalId)
   }, [isSubmitting, result, startedAt, submitAttempt, timedDuration, typedText])
 
-  const resetAttempt = (nextDuration = timedDuration) => {
+  const resetAttempt = (nextDuration = timedDuration, nextPassages = [currentPassage]) => {
+    setSessionPassages(nextPassages.filter(Boolean))
     setTypedText('')
     setStartedAt(null)
     setElapsedSeconds(0)
@@ -166,6 +172,7 @@ function App() {
     setIsServiceWaking(false)
     setPendingSessionChange(null)
     setCompletionAnnouncement('')
+    setHasTimedSessionEnded(false)
     startPerformanceRef.current = null
     submissionStartedRef.current = false
   }
@@ -206,7 +213,18 @@ function App() {
     setCustomDuration(nextCustomDuration)
     setCustomDurationError('')
     setCurrentPassage(nextPassage)
-    resetAttempt(nextDuration)
+    resetAttempt(nextDuration, [nextPassage])
+  }
+
+  const ensureTimedTextBuffer = (typedLength) => {
+    if (!timedDuration || hasTimedSessionEnded) return
+    if (originalText.length - typedLength > TIMED_TEXT_BUFFER_CHARACTERS) return
+
+    setSessionPassages((currentSequence) => {
+      const lastPassage = currentSequence[currentSequence.length - 1]
+      const nextPassage = selectPassage({ category, difficulty, lastPassageId: lastPassage?.id })
+      return nextPassage ? [...currentSequence, nextPassage] : currentSequence
+    })
   }
 
   const handleTyping = (event) => {
@@ -222,6 +240,7 @@ function App() {
       if (timedDuration) setRemainingSeconds(timedDuration)
     }
 
+    ensureTimedTextBuffer(nextText.length)
     setTypedText(nextText)
 
     if (testMode === 'complete' && nextText.length === originalText.length && attemptStartedAt) {
@@ -230,7 +249,7 @@ function App() {
   }
 
   const restartTest = () => {
-    resetAttempt()
+    resetAttempt(timedDuration, [currentPassage])
     window.requestAnimationFrame(() => inputRef.current?.focus())
   }
 
@@ -281,19 +300,20 @@ function App() {
 
     setCategory('Weak Keys')
     setTestMode('60')
-    setCurrentPassage({
+    const weakKeyPassage = {
       id: `weak-keys-${Date.now()}`,
       category: 'Weak Keys',
       difficulty,
       text: practiceText,
-    })
+    }
+    setCurrentPassage(weakKeyPassage)
     setStoredRecommendation(null)
-    resetAttempt(60)
+    resetAttempt(60, [weakKeyPassage])
     window.requestAnimationFrame(() => inputRef.current?.focus())
   }
 
   const chooseAnotherPractice = () => {
-    resetAttempt()
+    resetAttempt(timedDuration, [currentPassage])
     setCompletionAnnouncement('Practice settings ready. Choose a different level, topic or test length.')
     window.requestAnimationFrame(() => {
       settingsRef.current?.focus?.({ preventScroll: true })
@@ -301,7 +321,7 @@ function App() {
     })
   }
 
-  const testEnded = isSubmitting || Boolean(result) || Boolean(completionAnnouncement)
+  const testEnded = isSubmitting || Boolean(result) || hasTimedSessionEnded
   const displayedTime = timedDuration ? (remainingSeconds ?? timedDuration) : elapsedSeconds
   const levelLabel = DIFFICULTIES.find((item) => item.value === difficulty)?.label
 
@@ -380,7 +400,7 @@ function App() {
           onRestart={restartTest}
           onTyping={handleTyping}
           originalText={originalText}
-          result={result || completionAnnouncement}
+          result={result}
           testEnded={testEnded}
           timedDuration={timedDuration}
           typedText={typedText}

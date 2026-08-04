@@ -374,6 +374,92 @@ describe('Typing Coach application', () => {
     })
   })
 
+  it('appends a different suitable passage before a timed-session buffer runs out', async () => {
+    render(<App />)
+    const input = screen.getByRole('textbox', { name: 'Your typing' })
+    const firstPassage = screen.getByLabelText('Text to type').textContent
+
+    fireEvent.change(input, { target: { value: firstPassage.slice(0, -20) } })
+
+    await waitFor(() => expect(screen.getByLabelText('Text to type').textContent.length).toBeGreaterThan(firstPassage.length))
+    const bufferedText = screen.getByLabelText('Text to type').textContent
+    const secondPassage = PASSAGES.find((passage) => passage.category === 'General English' && passage.difficulty === 'BEGINNER' && passage.text !== firstPassage)
+    expect(bufferedText).toBe(`${firstPassage} ${secondPassage.text}`)
+    const currentCharacter = screen.getByLabelText('Text to type').querySelector('.passage-character.current')
+    expect(currentCharacter).toHaveTextContent(bufferedText[firstPassage.length - 20])
+    expect(analyzeTyping).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Finish Test' })).toBeEnabled()
+  })
+
+  it('can append multiple passages without resetting typing progress or the timer', async () => {
+    render(<App />)
+    const input = screen.getByRole('textbox', { name: 'Your typing' })
+    const firstPassage = screen.getByLabelText('Text to type').textContent
+    fireEvent.change(input, { target: { value: firstPassage.slice(0, -20) } })
+    await waitFor(() => expect(screen.getByLabelText('Text to type').textContent.length).toBeGreaterThan(firstPassage.length))
+    const twoPassages = screen.getByLabelText('Text to type').textContent
+    const typedAcrossBoundary = twoPassages.slice(0, -20)
+
+    fireEvent.change(input, { target: { value: typedAcrossBoundary } })
+
+    await waitFor(() => expect(screen.getByLabelText('Text to type').textContent.length).toBeGreaterThan(twoPassages.length))
+    expect(input).toHaveValue(typedAcrossBoundary)
+    expect(screen.getByRole('progressbar', { name: 'Typing progress' })).toHaveAttribute('aria-valuenow', String(typedAcrossBoundary.length))
+    await waitFor(() => expect(Number(document.querySelector('.timer-stat strong').textContent)).toBeLessThan(60))
+    expect(analyzeTyping).not.toHaveBeenCalled()
+  })
+
+  it('submits reached text only and excludes the unused timed buffer', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    const input = screen.getByRole('textbox', { name: 'Your typing' })
+    const firstPassage = screen.getByLabelText('Text to type').textContent
+    fireEvent.change(input, { target: { value: firstPassage.slice(0, -20) } })
+    await waitFor(() => expect(screen.getByLabelText('Text to type').textContent.length).toBeGreaterThan(firstPassage.length))
+    const presentedText = screen.getByLabelText('Text to type').textContent
+
+    await user.click(screen.getByRole('button', { name: 'Finish Test' }))
+    await waitFor(() => expect(analyzeTyping).toHaveBeenCalledOnce())
+
+    const request = analyzeTyping.mock.calls[0][0]
+    expect(request.originalText).toBe(firstPassage.slice(0, -20))
+    expect(request.typedText).toBe(firstPassage.slice(0, -20))
+    expect(request.originalText.length).toBeLessThan(presentedText.length)
+  })
+
+  it('restart clears appended passages and restores the original timed passage', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    const input = screen.getByRole('textbox', { name: 'Your typing' })
+    const firstPassage = screen.getByLabelText('Text to type').textContent
+    fireEvent.change(input, { target: { value: firstPassage.slice(0, -20) } })
+    await waitFor(() => expect(screen.getByLabelText('Text to type').textContent.length).toBeGreaterThan(firstPassage.length))
+
+    await user.click(screen.getByRole('button', { name: 'Restart Test' }))
+
+    expect(screen.getByLabelText('Text to type')).toHaveTextContent(firstPassage)
+    expect(screen.getByLabelText('Text to type').textContent).toBe(firstPassage)
+    expect(input).toHaveValue('')
+    expect(screen.getByText('60.0')).toBeVisible()
+  })
+
+  it('changing practice settings clears the generated timed passage sequence', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    const input = screen.getByRole('textbox', { name: 'Your typing' })
+    const firstPassage = screen.getByLabelText('Text to type').textContent
+    fireEvent.change(input, { target: { value: firstPassage.slice(0, -20) } })
+    await waitFor(() => expect(screen.getByLabelText('Text to type').textContent.length).toBeGreaterThan(firstPassage.length))
+
+    await user.selectOptions(screen.getByLabelText('Practice topic'), 'Java')
+    await user.click(screen.getByRole('button', { name: 'Discard and Change Settings' }))
+
+    const resetText = screen.getByLabelText('Text to type').textContent
+    expect(PASSAGES.some((passage) => passage.category === 'Java' && passage.difficulty === 'BEGINNER' && passage.text === resetText)).toBe(true)
+    expect(input).toHaveValue('')
+    expect(screen.getByRole('progressbar', { name: 'Typing progress' })).toHaveAttribute('aria-valuenow', '0')
+  })
+
   it('displays and stores a coach recommendation after a completed test', async () => {
     const user = userEvent.setup()
     render(<App />)
@@ -399,8 +485,53 @@ describe('Typing Coach application', () => {
 
     expect(screen.getByLabelText('Test length')).toHaveValue('60')
     expect(screen.queryByRole('heading', { name: 'Your results' })).not.toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Your typing' })).toBeEnabled()
     expect(screen.getByRole('textbox', { name: 'Your typing' })).toHaveValue('')
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Your typing' })).toHaveFocus())
+    expect(screen.getByText('Start typing to begin.')).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Finish Test' })).toBeDisabled()
+    expect(screen.getByRole('progressbar', { name: 'Typing progress' })).toHaveAttribute('aria-valuenow', '0')
     expect(screen.getByLabelText('Text to type').textContent).not.toBe(completedPassage)
+  })
+
+  it('starts a fully reset, immediately usable session with every recommended setting', async () => {
+    const user = userEvent.setup()
+    analyzeTyping.mockResolvedValue({
+      ...completeResult,
+      recommendedDifficulty: 'HARD',
+      recommendedCategory: 'SQL',
+      recommendedDuration: 120,
+      recommendationReason: 'Continue with a focused technical session.',
+      comparisonItems: [{ type: 'MISSING_CHARACTER', originalIndex: 0, expectedCharacter: 'A' }],
+    })
+    render(<App />)
+    const previousPassage = screen.getByLabelText('Text to type').textContent
+
+    await user.type(screen.getByRole('textbox', { name: 'Your typing' }), 'A')
+    await user.click(screen.getByRole('button', { name: 'Finish Test' }))
+    await user.click(await screen.findByRole('button', { name: 'Continue Recommended Practice' }))
+
+    const input = screen.getByRole('textbox', { name: 'Your typing' })
+    expect(screen.getByLabelText('Level')).toHaveValue('ADVANCED')
+    expect(screen.getByLabelText('Practice topic')).toHaveValue('SQL')
+    expect(screen.getByLabelText('Test length')).toHaveValue('120')
+    expect(screen.getByLabelText('Text to type').textContent).not.toBe(previousPassage)
+    expect(PASSAGES.some((passage) => passage.category === 'SQL' && passage.difficulty === 'ADVANCED' && passage.text === screen.getByLabelText('Text to type').textContent)).toBe(true)
+    expect(input).toBeEnabled()
+    expect(input).toHaveValue('')
+    await waitFor(() => expect(input).toHaveFocus())
+    expect(screen.queryByRole('heading', { name: 'Your results' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.queryByText('Analysing your typing...')).not.toBeInTheDocument()
+    expect(screen.getByText('120.0')).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Finish Test' })).toBeDisabled()
+    expect(screen.getByRole('progressbar', { name: 'Typing progress' })).toHaveAttribute('aria-valuenow', '0')
+    expect(document.querySelector('.passage-character.missing')).not.toBeInTheDocument()
+
+    fireEvent.change(input, { target: { value: screen.getByLabelText('Text to type').textContent[0] } })
+    expect(screen.getByRole('button', { name: 'Finish Test' })).toBeEnabled()
+    expect(screen.queryByText('Start typing to begin.')).not.toBeInTheDocument()
+    await waitFor(() => expect(Number(document.querySelector('.timer-stat strong').textContent)).toBeLessThan(120))
   })
 
   it('lets the user choose another practice and clears the completed result', async () => {
