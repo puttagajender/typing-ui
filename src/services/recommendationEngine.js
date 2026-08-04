@@ -6,6 +6,23 @@ const numericValue = (value, fallback = 0) => {
   return Number.isFinite(number) ? number : fallback
 }
 
+const backendDifficulties = {
+  EASY: 'BEGINNER',
+  MEDIUM: 'INTERMEDIATE',
+  HARD: 'ADVANCED',
+  EXPERT: 'EXPERT',
+}
+
+const backendCategories = {
+  GENERAL: 'General English',
+  COMMON_WORDS: 'Common Words',
+  PROGRAMMING: 'Programming',
+  JAVA: 'Java',
+  SPRING_BOOT: 'Spring Boot',
+  SQL: 'SQL',
+  GIT: 'Git',
+}
+
 const thresholdChecks = {
   minCorrectWpm: (metrics, value) => metrics.correctWpm >= value,
   minAccuracy: (metrics, value) => metrics.accuracy >= value,
@@ -50,12 +67,19 @@ export function createCoachRecommendation(result, currentDifficulty, currentCate
   }
   const rule = RECOMMENDATION_RULES.find((candidate) => matchesRule(candidate, metrics))
 
+  const backendDifficultyValue = result.recommendedDifficulty ?? result.recommendation?.recommendedDifficulty
+  const backendCategoryValue = result.recommendedCategory ?? result.recommendation?.recommendedCategory
+  const backendDifficulty = backendDifficulties[backendDifficultyValue]
+  const backendCategory = backendCategories[backendCategoryValue]
+  const backendDuration = result.recommendedDuration ?? result.recommendation?.recommendedDuration
+  const backendReason = result.recommendationReason ?? result.recommendation?.recommendationReason
+
   return {
     ruleId: rule.id,
-    nextDifficulty: resolveDifficulty(currentDifficulty, rule.difficultyAction),
-    suggestedDuration: rule.suggestedDuration,
-    suggestedCategory: resolveCategory(currentCategory, rule.categoryAction),
-    explanation: rule.explanation,
+    nextDifficulty: backendDifficulty ?? resolveDifficulty(currentDifficulty, rule.difficultyAction),
+    suggestedDuration: backendDuration ?? rule.suggestedDuration,
+    suggestedCategory: backendCategory ?? resolveCategory(currentCategory, rule.categoryAction),
+    explanation: backendReason ?? rule.explanation,
     metrics,
   }
 }

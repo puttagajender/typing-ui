@@ -1,18 +1,26 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 const requestBaseUrl = import.meta.env.DEV ? '' : API_BASE_URL
+const ANALYSIS_TIMEOUT_MS = 45000
 
 export async function analyzeTyping(attempt) {
   if (!API_BASE_URL) {
-    throw new Error('The API address is not configured. Add VITE_API_BASE_URL to the .env file.')
+    throw new Error('The analysis service is not configured. Please contact support.')
   }
 
   try {
-    console.log('Calling backend API')
-    const response = await fetch(`${requestBaseUrl}/api/v1/typing/analyze`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(attempt),
-    })
+    const controller = new AbortController()
+    const timeoutId = window.setTimeout(() => controller.abort(), ANALYSIS_TIMEOUT_MS)
+    let response
+    try {
+      response = await fetch(`${requestBaseUrl}/api/v1/typing/analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(attempt),
+        signal: controller.signal,
+      })
+    } finally {
+      window.clearTimeout(timeoutId)
+    }
 
     if (!response.ok) {
       let detail = ''
@@ -24,21 +32,26 @@ export async function analyzeTyping(attempt) {
       }
 
       if (response.status >= 400 && response.status < 500) {
-        throw new Error(detail || 'Please check the attempt and try again.')
+        if (response.status === 400 && detail) throw new Error(detail)
+        throw new Error('The analysis service could not process this request. Please try again.')
       }
-      throw new Error(detail || 'The typing service is unavailable. Please try again shortly.')
+      throw new Error('The analysis service is unavailable right now. Please try again.')
     }
 
     const result = await response.json()
-    console.log('Backend response received', result)
     return result
   } catch (error) {
-    console.error('Backend request failed')
+    if (error?.name === 'AbortError') {
+      throw new Error('The analysis took too long. Please retry.', { cause: error })
+    }
     if (error instanceof TypeError) {
       throw new Error(
-        'Could not connect to the typing service. Make sure the backend is running.',
+        'We could not reach the analysis service. Please try again.',
         { cause: error },
       )
+    }
+    if (error instanceof SyntaxError) {
+      throw new Error('The analysis service returned an unexpected response. Please try again.', { cause: error })
     }
     throw error
   }

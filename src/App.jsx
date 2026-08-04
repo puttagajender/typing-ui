@@ -2,12 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import CoachRecommendation from './components/CoachRecommendation'
 import ErrorMessage from './components/ErrorMessage'
+import PracticeSession from './components/PracticeSession'
 import ProgressDashboard from './components/ProgressDashboard'
 import ResultsPanel from './components/ResultsPanel'
-import TestControls from './components/TestControls'
 import TestSettings from './components/TestSettings'
-import TypingInput from './components/TypingInput'
-import TypingPassage from './components/TypingPassage'
 import WeakKeyCoach from './components/WeakKeyCoach'
 import { CATEGORIES, DIFFICULTIES } from './data/passages'
 import { analyzeTyping } from './services/typingApi'
@@ -20,6 +18,8 @@ import { selectPassage } from './utils/passageSelection'
 import { buildWeakKeyPassage } from './utils/weakKeyPractice'
 
 const validDifficulties = DIFFICULTIES.map((item) => item.value)
+const SERVICE_WAKE_DELAY_MS = 4000
+const MOBILE_RESULTS_BREAKPOINT = 720
 
 function App() {
   const [initialPractice] = useState(() => loadPracticeSettings(validDifficulties, CATEGORIES))
@@ -27,6 +27,7 @@ function App() {
   const [category, setCategory] = useState(initialPractice.category)
   const [testMode, setTestMode] = useState(initialPractice.testMode)
   const [customDuration, setCustomDuration] = useState(initialPractice.customDuration)
+  const [customDurationError, setCustomDurationError] = useState('')
   const [currentPassage, setCurrentPassage] = useState(() => selectPassage({
     category: initialPractice.category,
     difficulty: initialPractice.difficulty,
@@ -39,8 +40,11 @@ function App() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
+  const [isServiceWaking, setIsServiceWaking] = useState(false)
+  const [pendingSessionChange, setPendingSessionChange] = useState(null)
   const [completionAnnouncement, setCompletionAnnouncement] = useState('')
   const [storedRecommendation, setStoredRecommendation] = useState(loadRecommendation)
+  const [isWelcomeDismissed, setIsWelcomeDismissed] = useState(false)
   const [progress, setProgress] = useState(loadProgress)
   const startPerformanceRef = useRef(null)
   const submissionStartedRef = useRef(false)
@@ -52,7 +56,7 @@ function App() {
   const timedDuration = testMode === 'complete'
     ? null
     : testMode === 'custom'
-      ? customDuration
+      ? Number(customDuration) >= 15 && Number(customDuration) <= 300 ? Number(customDuration) : 60
       : Number(testMode)
   const recommendation = useMemo(
     () => (result ? createCoachRecommendation(result, difficulty, category) : null),
@@ -60,7 +64,7 @@ function App() {
   )
 
   useEffect(() => {
-    console.log('Application loaded')
+    window.requestAnimationFrame(() => inputRef.current?.focus({ preventScroll: true }))
   }, [])
 
   useEffect(() => {
@@ -75,10 +79,9 @@ function App() {
 
   useEffect(() => {
     if (result) {
-      console.log('Result displayed')
       window.requestAnimationFrame(() => {
         resultsRef.current?.focus?.({ preventScroll: true })
-        resultsRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
+        if (window.innerWidth <= MOBILE_RESULTS_BREAKPOINT) resultsRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
       })
     }
   }, [result])
@@ -86,6 +89,12 @@ function App() {
   useEffect(() => {
     if (recommendation) saveRecommendation(recommendation)
   }, [recommendation])
+
+  useEffect(() => {
+    if (!isSubmitting) return undefined
+    const wakingTimer = window.setTimeout(() => setIsServiceWaking(true), SERVICE_WAKE_DELAY_MS)
+    return () => window.clearTimeout(wakingTimer)
+  }, [isSubmitting])
 
   const handleAnalysisResult = useCallback((analysis, submittedText) => {
     setResult(analysis)
@@ -96,12 +105,12 @@ function App() {
     })
   }, [])
 
-  const submitAttempt = useCallback(async (textToSubmit, automatic = false) => {
-    if (!startedAt || submissionStartedRef.current || textToSubmit.length === 0) return
+  const submitAttempt = useCallback(async (textToSubmit, automatic = false, attemptStartedAt = startedAt) => {
+    if (!attemptStartedAt || submissionStartedRef.current || textToSubmit.length === 0) return
 
-    console.log('Test completed')
     submissionStartedRef.current = true
     setIsSubmitting(true)
+    setIsServiceWaking(false)
     setError('')
     setElapsedSeconds((performance.now() - startPerformanceRef.current) / 1000)
 
@@ -117,13 +126,13 @@ function App() {
       const analysis = await analyzeTyping({
         originalText: requestOriginalText,
         typedText: textToSubmit,
-        startedAt,
+        startedAt: attemptStartedAt,
         completedAt: new Date().toISOString(),
       })
       handleAnalysisResult(analysis, textToSubmit)
     } catch (requestError) {
       setError(requestError.message)
-      if (!automatic) submissionStartedRef.current = false
+      submissionStartedRef.current = false
     } finally {
       setIsSubmitting(false)
     }
@@ -154,13 +163,23 @@ function App() {
     setIsSubmitting(false)
     setResult(null)
     setError('')
+    setIsServiceWaking(false)
+    setPendingSessionChange(null)
     setCompletionAnnouncement('')
     startPerformanceRef.current = null
     submissionStartedRef.current = false
   }
 
-  const canDiscardActiveTest = () =>
-    !startedAt || Boolean(result) || window.confirm('Discard the current typing test and load new practice?')
+  const requestSessionChange = (action, description) => {
+    if (!startedAt || result) return action()
+    setPendingSessionChange({ action, description })
+  }
+
+  const discardAndContinue = () => {
+    const action = pendingSessionChange?.action
+    setPendingSessionChange(null)
+    action?.()
+  }
 
   const loadPractice = ({
     nextDifficulty = difficulty,
@@ -176,13 +195,16 @@ function App() {
     const nextDuration = nextMode === 'complete'
       ? null
       : nextMode === 'custom'
-        ? nextCustomDuration
+        ? Number(nextCustomDuration) >= 15 && Number(nextCustomDuration) <= 300
+          ? Number(nextCustomDuration)
+          : 60
         : Number(nextMode)
 
     setDifficulty(nextDifficulty)
     setCategory(nextCategory)
     setTestMode(nextMode)
     setCustomDuration(nextCustomDuration)
+    setCustomDurationError('')
     setCurrentPassage(nextPassage)
     resetAttempt(nextDuration)
   }
@@ -193,9 +215,6 @@ function App() {
     let attemptStartedAt = startedAt
 
     if (!startedAt && nextText.length > 0) {
-      console.log('Test started')
-      console.log('Timer started')
-      console.log('User started typing')
       attemptStartedAt = new Date().toISOString()
       startPerformanceRef.current = performance.now()
       setStartedAt(attemptStartedAt)
@@ -206,60 +225,55 @@ function App() {
     setTypedText(nextText)
 
     if (testMode === 'complete' && nextText.length === originalText.length && attemptStartedAt) {
-      console.log('Test completed')
-      submissionStartedRef.current = true
-      setIsSubmitting(true)
-      setError('')
-      setElapsedSeconds((performance.now() - startPerformanceRef.current) / 1000)
-      analyzeTyping({
-        originalText,
-        typedText: nextText,
-        startedAt: attemptStartedAt,
-        completedAt: new Date().toISOString(),
-      })
-        .then((analysis) => handleAnalysisResult(analysis, nextText))
-        .catch((requestError) => {
-          setError(requestError.message)
-          submissionStartedRef.current = false
-        })
-        .finally(() => setIsSubmitting(false))
+      submitAttempt(nextText, false, attemptStartedAt)
     }
   }
 
   const restartTest = () => {
-    console.log('Restart clicked')
     resetAttempt()
     window.requestAnimationFrame(() => inputRef.current?.focus())
   }
 
   const changePracticeOption = (changes) => {
-    if (!canDiscardActiveTest()) return
-    loadPractice(changes)
+    requestSessionChange(() => loadPractice(changes), 'change your practice settings')
   }
 
   const handleCustomDurationChange = (event) => {
-    if (!canDiscardActiveTest()) return
-    const requestedDuration = Number(event.target.value)
-    const validDuration = requestedDuration >= 15 && requestedDuration <= 300 ? requestedDuration : 60
-    loadPractice({ nextMode: 'custom', nextCustomDuration: validDuration })
+    const requestedValue = event.target.value
+    const requestedDuration = Number(requestedValue)
+    const validationMessage = requestedValue === ''
+      ? 'Enter a duration from 15 to 300 seconds.'
+      : requestedDuration < 15
+        ? 'Duration must be at least 15 seconds.'
+        : requestedDuration > 300
+          ? 'Duration must be 300 seconds or less.'
+          : ''
+    requestSessionChange(() => {
+      loadPractice({ nextMode: 'custom', nextCustomDuration: requestedValue })
+      setCustomDurationError(validationMessage)
+    }, 'change the test duration')
   }
 
   const handleNewPassage = () => {
-    if (!canDiscardActiveTest()) return
-    loadPractice({})
-    window.requestAnimationFrame(() => inputRef.current?.focus())
+    requestSessionChange(() => {
+      loadPractice({})
+      window.requestAnimationFrame(() => inputRef.current?.focus())
+    }, 'load a new passage')
   }
 
   const continueRecommendedPractice = (nextRecommendation) => {
-    const nextMode = String(nextRecommendation.suggestedDuration)
-    loadPractice({
-      nextDifficulty: nextRecommendation.nextDifficulty,
-      nextCategory: nextRecommendation.suggestedCategory,
-      nextMode,
-    })
-    setStoredRecommendation(null)
+    const changes = {}
+    if (nextRecommendation?.nextDifficulty) changes.nextDifficulty = nextRecommendation.nextDifficulty
+    if (nextRecommendation?.suggestedCategory) changes.nextCategory = nextRecommendation.suggestedCategory
+    if (nextRecommendation?.suggestedDuration != null) changes.nextMode = String(nextRecommendation.suggestedDuration)
+    loadPractice(changes)
+    setStoredRecommendation(nextRecommendation)
+    setIsWelcomeDismissed(true)
+    setCompletionAnnouncement('Recommended practice loaded')
     window.requestAnimationFrame(() => inputRef.current?.focus())
   }
+
+  const retryAnalysis = () => submitAttempt(typedText)
 
   const practiceWeakKeys = (suggestedWords) => {
     const practiceText = buildWeakKeyPassage(suggestedWords)
@@ -276,6 +290,15 @@ function App() {
     setStoredRecommendation(null)
     resetAttempt(60)
     window.requestAnimationFrame(() => inputRef.current?.focus())
+  }
+
+  const chooseAnotherPractice = () => {
+    resetAttempt()
+    setCompletionAnnouncement('Practice settings ready. Choose a different level, topic or test length.')
+    window.requestAnimationFrame(() => {
+      settingsRef.current?.focus?.({ preventScroll: true })
+      settingsRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
+    })
   }
 
   const testEnded = isSubmitting || Boolean(result) || Boolean(completionAnnouncement)
@@ -295,20 +318,20 @@ function App() {
       </header>
 
       <main className="compact-main content-shell">
-        {storedRecommendation && !result && (
+        {storedRecommendation && !result && !isWelcomeDismissed && (
           <aside className="welcome-back" aria-labelledby="welcome-back-heading">
             <div>
               <p className="eyebrow">Welcome back</p>
               <h2 id="welcome-back-heading">Your recommended next practice is ready.</h2>
               <dl className="welcome-plan">
-                <div><dt>Level</dt><dd>{DIFFICULTIES.find((item) => item.value === storedRecommendation.nextDifficulty)?.label}</dd></div>
-                <div><dt>Category</dt><dd>{storedRecommendation.suggestedCategory}</dd></div>
-                <div><dt>Duration</dt><dd>{storedRecommendation.suggestedDuration} seconds</dd></div>
+                {storedRecommendation.nextDifficulty && <div><dt>Level</dt><dd>{storedRecommendation.nextDifficulty.charAt(0) + storedRecommendation.nextDifficulty.slice(1).toLowerCase()}</dd></div>}
+                {storedRecommendation.suggestedCategory && <div><dt>Topic</dt><dd>{storedRecommendation.suggestedCategory}</dd></div>}
+                {storedRecommendation.suggestedDuration != null && <div><dt>Duration</dt><dd>{storedRecommendation.suggestedDuration} seconds</dd></div>}
               </dl>
             </div>
             <div className="welcome-actions">
-              <button className="button button-primary" type="button" onClick={() => continueRecommendedPractice(storedRecommendation)}>Continue Recommendation</button>
-              <button className="button button-secondary" type="button" onClick={() => settingsRef.current?.scrollIntoView?.({ behavior: 'smooth' })}>Choose Another Practice</button>
+              <button className="button button-primary" type="button" onClick={() => continueRecommendedPractice(storedRecommendation)}>Continue</button>
+              <button className="button button-secondary" type="button" onClick={() => setIsWelcomeDismissed(true)}>Dismiss</button>
             </div>
           </aside>
         )}
@@ -316,10 +339,9 @@ function App() {
         <ProgressDashboard
           progress={progress}
           difficulty={difficulty}
-          recommendation={recommendation ?? storedRecommendation}
         />
 
-        <div ref={settingsRef}>
+        <div ref={settingsRef} className="settings-focus-target" tabIndex="-1">
           <TestSettings
             difficulty={difficulty}
             category={category}
@@ -330,44 +352,49 @@ function App() {
             onTestModeChange={(event) => changePracticeOption({ nextMode: event.target.value })}
             onCustomDurationChange={handleCustomDurationChange}
             onNewPassage={handleNewPassage}
+            recommendation={recommendation ?? storedRecommendation}
+            customDurationError={customDurationError}
+            sessionVersion={`${Boolean(startedAt)}:${currentPassage?.id ?? ''}`}
             disabled={isSubmitting}
           />
+          {pendingSessionChange && (
+            <div className="session-confirmation" role="alertdialog" aria-labelledby="session-confirmation-title" aria-describedby="session-confirmation-description">
+              <div><strong id="session-confirmation-title">Keep your current attempt?</strong><span id="session-confirmation-description">Your progress will be cleared if you {pendingSessionChange.description}.</span></div>
+              <div className="session-confirmation-actions">
+                <button className="button button-secondary" type="button" onClick={() => setPendingSessionChange(null)}>Continue Current Test</button>
+                <button className="button button-danger" type="button" onClick={discardAndContinue}>Discard and Change Settings</button>
+              </div>
+            </div>
+          )}
         </div>
 
-        <section className="practice-card" aria-labelledby="practice-heading" aria-busy={isSubmitting}>
-          <div className="practice-heading-row">
-            <div>
-              <p className="practice-context">{levelLabel} · {category}</p>
-              <h2 id="practice-heading">Practice passage</h2>
-            </div>
-            <div className="live-stats">
-              <span><strong>{displayedTime.toFixed(1)}</strong><small>{timedDuration ? 'seconds remaining' : 'seconds elapsed'}</small></span>
-              <span><strong>{typedText.length} / {originalText.length}</strong><small>characters</small></span>
-            </div>
-          </div>
-
-          {!startedAt && !result && <p className="start-prompt" role="status">Start typing to begin</p>}
-          <TypingPassage
-            originalText={originalText}
-            typedText={typedText}
-            comparisonItems={result?.comparisonItems ?? result?.comparisonDetails ?? result?.mistakeDetails}
-          />
-          <TypingInput ref={inputRef} value={typedText} onChange={handleTyping} disabled={testEnded} maxLength={originalText.length} />
-          <div className="typing-progress" role="progressbar" aria-label="Typing progress" aria-valuemin="0" aria-valuemax={originalText.length} aria-valuenow={typedText.length}>
-            <span style={{ width: `${(typedText.length / originalText.length) * 100}%` }} />
-          </div>
-          <TestControls hasStarted={Boolean(startedAt)} isSubmitting={isSubmitting} hasResult={Boolean(result) || Boolean(completionAnnouncement)} onFinish={() => submitAttempt(typedText)} onRestart={restartTest} />
-        </section>
+        <PracticeSession
+          category={category}
+          comparisonItems={result?.comparisonItems ?? result?.comparisonDetails ?? result?.mistakeDetails}
+          displayedTime={displayedTime}
+          error={error}
+          inputRef={inputRef}
+          isSubmitting={isSubmitting}
+          levelLabel={levelLabel}
+          onFinish={() => submitAttempt(typedText)}
+          onRestart={restartTest}
+          onTyping={handleTyping}
+          originalText={originalText}
+          result={result || completionAnnouncement}
+          testEnded={testEnded}
+          timedDuration={timedDuration}
+          typedText={typedText}
+        />
 
         <p className="sr-only" aria-live="assertive">{completionAnnouncement}</p>
-        {isSubmitting && <div className="notification notification-loading" role="status" aria-live="polite"><span className="loading-spinner" aria-hidden="true" /><div><strong>Analysing your typing...</strong><span>Your results will be ready in a moment.</span></div></div>}
-        <ErrorMessage message={error} />
+        {isSubmitting && <div className="notification notification-loading" role="status" aria-live="polite"><span className="loading-spinner" aria-hidden="true" /><div><strong>Analysing your typing...</strong><span>{isServiceWaking ? 'The analysis service is starting. This may take a few moments.' : 'Your results will be ready in a moment.'}</span></div></div>}
+        <ErrorMessage message={error} onRetry={retryAnalysis} onRestart={restartTest} />
         {result && (
           <>
             <div className="notification notification-success" role="status"><span className="notification-icon" aria-hidden="true">✓</span><div><strong>Analysis complete</strong><span>Your typing results are ready.</span></div></div>
             <ResultsPanel ref={resultsRef} result={result} />
             <WeakKeyCoach result={result} onPractice={practiceWeakKeys} />
-            <CoachRecommendation recommendation={recommendation} onContinue={() => continueRecommendedPractice(recommendation)} onPracticeAgain={restartTest} />
+            <CoachRecommendation recommendation={recommendation} onContinue={() => continueRecommendedPractice(recommendation)} onPracticeAgain={restartTest} onChooseAnother={chooseAnotherPractice} />
           </>
         )}
       </main>

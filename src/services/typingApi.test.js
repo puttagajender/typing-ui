@@ -9,7 +9,10 @@ const attempt = {
 }
 
 describe('typing API service', () => {
-  afterEach(() => vi.unstubAllGlobals())
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    vi.useRealTimers()
+  })
 
   it('posts the attempt as JSON and returns the backend response', async () => {
     const responseBody = { wpm: 25.5, accuracy: 94.5 }
@@ -21,6 +24,7 @@ describe('typing API service', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(attempt),
+      signal: expect.any(AbortSignal),
     })
   })
 
@@ -37,15 +41,47 @@ describe('typing API service', () => {
   it('returns a friendly message for a network failure', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
 
-    await expect(analyzeTyping(attempt)).rejects.toThrow('Could not connect to the typing service')
+    await expect(analyzeTyping(attempt)).rejects.toThrow('We could not reach the analysis service')
   })
 
-  it('rejects an invalid JSON response without hiding the failure', async () => {
+  it('hides raw server error details behind a friendly message', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: vi.fn().mockResolvedValue({ message: 'Internal Server Error: stack trace' }),
+    }))
+
+    await expect(analyzeTyping(attempt)).rejects.toThrow('The analysis service is unavailable right now. Please try again.')
+  })
+
+  it('returns a friendly message for an invalid JSON response', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
       json: vi.fn().mockRejectedValue(new SyntaxError('Unexpected token')),
     }))
 
-    await expect(analyzeTyping(attempt)).rejects.toThrow('Unexpected token')
+    await expect(analyzeTyping(attempt)).rejects.toThrow('The analysis service returned an unexpected response. Please try again.')
+  })
+
+  it('returns a friendly message for a missing analysis endpoint', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+      json: vi.fn().mockResolvedValue({ message: 'Not Found' }),
+    }))
+
+    await expect(analyzeTyping(attempt)).rejects.toThrow('The analysis service could not process this request. Please try again.')
+  })
+
+  it('times out a request that takes too long', async () => {
+    vi.useFakeTimers()
+    vi.stubGlobal('fetch', vi.fn((_, options) => new Promise((resolve, reject) => {
+      options.signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')))
+    })))
+
+    const request = analyzeTyping(attempt)
+    const rejection = expect(request).rejects.toThrow('The analysis took too long. Please retry.')
+    await vi.advanceTimersByTimeAsync(45000)
+    await rejection
   })
 })

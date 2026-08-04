@@ -51,4 +51,20 @@ describe('typing text alignment', () => {
     expect(operations).toHaveLength('exact match'.length)
     expect(operations.every(([type]) => type === COMPARISON_TYPES.MATCH)).toBe(true)
   })
+
+  it.each([
+    ['  leading spaces', '  leading spaces'],
+    ['trailing spaces  ', 'trailing spaces  '],
+    ['Wait... what?', 'Wait... what?'],
+    ['Version 2.0 uses 100%', 'Version 2.0 uses 100%'],
+    ['BOOK keeper', 'BOOK keeper'],
+  ])('preserves exact alignment for whitespace, punctuation, numbers, and case: %s', (original, typed) => {
+    expect(compact(alignText(original, typed)).every(([type]) => type === COMPARISON_TYPES.MATCH)).toBe(true)
+  })
+
+  it('realigns after a repeated character', () => {
+    const operations = compact(alignText('letter', 'lettter'))
+    expect(operations).toContainEqual([COMPARISON_TYPES.EXTRA_CHARACTER, undefined, 't'])
+    expect(operations.slice(-2).every(([type]) => type === COMPARISON_TYPES.MATCH)).toBe(true)
+  })
 })

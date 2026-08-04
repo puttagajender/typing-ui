@@ -88,4 +88,24 @@ describe('coach recommendation engine', () => {
       suggestedCategory: 'Java',
     })
   })
+
+  it('uses recommendation fields returned by the backend when available', () => {
+    const recommendation = createCoachRecommendation({
+      correctWpm: 38,
+      grossWpm: 41,
+      accuracy: 95,
+      mistakeCount: 4,
+      recommendedDifficulty: 'HARD',
+      recommendedCategory: 'JAVA',
+      recommendedDuration: 120,
+      recommendationReason: 'Backend recommendation reason.',
+    }, 'BEGINNER', 'Java')
+
+    expect(recommendation).toMatchObject({
+      nextDifficulty: 'ADVANCED',
+      suggestedCategory: 'Java',
+      suggestedDuration: 120,
+      explanation: 'Backend recommendation reason.',
+    })
+  })
 })
