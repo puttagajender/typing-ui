@@ -64,7 +64,7 @@ function TestSettings({
               aria-describedby={customDurationError ? 'custom-duration-error' : 'custom-duration-help'}
             />
             {customDurationError
-              ? <small id="custom-duration-error" className="field-error">{customDurationError}</small>
+              ? <small id="custom-duration-error" className="field-error" role="alert">{customDurationError}</small>
               : <small id="custom-duration-help" className="field-help">15–300 seconds</small>}
           </label>
         )}

@@ -56,6 +56,20 @@ describe('Typing Coach application', () => {
     expect(screen.getByRole('button', { name: 'Restart Test' })).toBeEnabled()
   })
 
+  it('provides semantic landmarks, one page heading, and a keyboard-accessible skip link', () => {
+    render(<App />)
+
+    expect(document.querySelectorAll('h1')).toHaveLength(1)
+    expect(screen.getByRole('banner')).toBeInTheDocument()
+    expect(screen.getByRole('main')).toHaveAttribute('id', 'main-content')
+    expect(screen.getByRole('contentinfo')).toBeInTheDocument()
+
+    const skipLink = screen.getByRole('link', { name: 'Skip to main content' })
+    expect(skipLink).toHaveAttribute('href', '#main-content')
+    skipLink.focus()
+    expect(skipLink).toHaveFocus()
+  })
+
   it('starts on the first character and applies correct, current, and untyped classes', async () => {
     const user = userEvent.setup()
     render(<App />)
@@ -595,7 +609,7 @@ describe('Typing Coach application', () => {
     await user.selectOptions(screen.getByLabelText('Practice topic'), 'Git')
     expect(screen.getByLabelText('Practice topic')).toHaveValue('General English')
     expect(screen.getByRole('textbox', { name: 'Your typing' })).toHaveValue('A')
-    expect(screen.getByRole('alertdialog')).toBeVisible()
+    expect(screen.getByRole('alert')).toBeVisible()
     await user.click(screen.getByRole('button', { name: 'Continue Current Test' }))
 
     await user.selectOptions(screen.getByLabelText('Practice topic'), 'Git')
@@ -616,6 +630,7 @@ describe('Typing Coach application', () => {
     expect(customInput).toHaveValue(10)
     expect(customInput).toHaveAccessibleDescription('Duration must be at least 15 seconds.')
     expect(customInput).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByRole('alert')).toHaveTextContent('Duration must be at least 15 seconds.')
     fireEvent.change(customInput, { target: { value: '301' } })
     expect(customInput).toHaveValue(301)
     expect(customInput).toHaveAccessibleDescription('Duration must be 300 seconds or less.')

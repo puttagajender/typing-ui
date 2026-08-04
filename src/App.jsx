@@ -5,6 +5,7 @@ import ErrorMessage from './components/ErrorMessage'
 import PracticeSession from './components/PracticeSession'
 import ProgressDashboard from './components/ProgressDashboard'
 import ResultsPanel from './components/ResultsPanel'
+import SeoContent from './components/SeoContent'
 import TestSettings from './components/TestSettings'
 import WeakKeyCoach from './components/WeakKeyCoach'
 import { CATEGORIES, DIFFICULTIES } from './data/passages'
@@ -327,6 +328,7 @@ function App() {
 
   return (
     <div className="app-page compact-app">
+      <a className="skip-link" href="#main-content">Skip to main content</a>
       <header className="compact-header">
         <div className="content-shell compact-header-inner">
           <div>
@@ -337,7 +339,7 @@ function App() {
         </div>
       </header>
 
-      <main className="compact-main content-shell">
+      <main id="main-content" className="compact-main content-shell" tabIndex="-1">
         {storedRecommendation && !result && !isWelcomeDismissed && (
           <aside className="welcome-back" aria-labelledby="welcome-back-heading">
             <div>
@@ -378,7 +380,7 @@ function App() {
             disabled={isSubmitting}
           />
           {pendingSessionChange && (
-            <div className="session-confirmation" role="alertdialog" aria-labelledby="session-confirmation-title" aria-describedby="session-confirmation-description">
+            <div className="session-confirmation" role="alert" aria-labelledby="session-confirmation-title" aria-describedby="session-confirmation-description">
               <div><strong id="session-confirmation-title">Keep your current attempt?</strong><span id="session-confirmation-description">Your progress will be cleared if you {pendingSessionChange.description}.</span></div>
               <div className="session-confirmation-actions">
                 <button className="button button-secondary" type="button" onClick={() => setPendingSessionChange(null)}>Continue Current Test</button>
@@ -417,6 +419,8 @@ function App() {
             <CoachRecommendation recommendation={recommendation} onContinue={() => continueRecommendedPractice(recommendation)} onPracticeAgain={restartTest} onChooseAnother={chooseAnotherPractice} />
           </>
         )}
+
+        <SeoContent />
       </main>
 
       <footer className="compact-footer"><div className="content-shell"><strong>Typing Coach</strong><span>Practice deliberately. Improve consistently.</span></div></footer>
