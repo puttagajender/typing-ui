@@ -17,7 +17,7 @@ const faqs = [
   },
   {
     question: 'Is Typing Coach free?',
-    answer: 'Yes. Typing Coach provides free online typing practice directly in your browser. You can practise different topics and levels, review WPM and accuracy, follow personalised guidance, and repeat sessions without creating an account.',
+    answer: 'Yes. Typing Coach provides free online typing practice directly in your browser. You can practice different topics and levels, review WPM and accuracy, follow personalized guidance, and repeat sessions without creating an account.',
   },
 ]
 
@@ -31,7 +31,7 @@ function SeoContent() {
             Typing Coach is a complete typing improvement platform for building accurate, confident keyboard skills. Unlike traditional typing speed tests that focus mainly on a final score, Typing Coach supports the full learning journey: learn, practice, improve, and eventually master touch typing.
           </p>
           <p>
-            Focused passages, multiple difficulty levels, clear performance analysis, and personalised recommendations help each practice session lead naturally to the next. The experience prioritises typing accuracy and consistent muscle memory before speed, making progress easier to understand and sustain.
+            Focused passages, multiple difficulty levels, clear performance analysis, and personalized recommendations help each practice session lead naturally to the next. The experience prioritizes typing accuracy and consistent muscle memory before speed, making progress easier to understand and sustain.
           </p>
           <h3>Who is Typing Coach for?</h3>
           <ul className="typing-coach-audiences">

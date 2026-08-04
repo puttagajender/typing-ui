@@ -253,12 +253,12 @@ describe('Typing Coach application', () => {
     await user.click(screen.getByRole('button', { name: 'Finish Test' }))
     const panel = (await screen.findByRole('heading', { name: 'Your results' })).closest('section')
 
-    expect(within(panel).getByText('Gross WPM').closest('dt').nextElementSibling).toHaveTextContent('Not available')
+    expect(within(panel).getByText('Gross WPM').closest('dt').nextElementSibling).toHaveTextContent('Not reported')
     expect(within(panel).getByText('Mistakes').closest('dt').nextElementSibling).toHaveTextContent('0')
     expect(within(panel).getByText('Wrong Characters').closest('dt').nextElementSibling).toHaveTextContent('0')
     expect(within(panel).getByText('Missing Characters').closest('dt').nextElementSibling).toHaveTextContent('0')
-    expect(within(panel).getByText('Extra Characters').closest('dt').nextElementSibling).toHaveTextContent('Not available')
-    expect(screen.getByText('Excellent accuracy. You are ready for a harder passage.')).toBeVisible()
+    expect(within(panel).getByText('Extra Characters').closest('dt').nextElementSibling).toHaveTextContent('Not reported')
+    expect(screen.getByText('Excellent accuracy. Build your skills with a harder passage.')).toBeVisible()
   })
 
   it('shows a friendly validation error using alert semantics', async () => {
@@ -344,7 +344,7 @@ describe('Typing Coach application', () => {
     await act(async () => vi.advanceTimersByTime(30100))
 
     expect(analyzeTyping).toHaveBeenCalledOnce()
-    expect(screen.getByText('Time is up. Your test was submitted automatically.')).toBeInTheDocument()
+    expect(screen.getByText('Time is up. Your practice was submitted automatically.')).toBeInTheDocument()
   })
 
   it('restart preserves the selected timed mode and resets its countdown', async () => {
@@ -612,7 +612,7 @@ describe('Typing Coach application', () => {
     expect(screen.getByLabelText('Practice topic')).toHaveValue('General English')
     expect(screen.getByRole('textbox', { name: 'Your typing' })).toHaveValue('A')
     expect(screen.getByRole('alert')).toBeVisible()
-    await user.click(screen.getByRole('button', { name: 'Continue Current Test' }))
+    await user.click(screen.getByRole('button', { name: 'Continue Current Practice' }))
 
     await user.selectOptions(screen.getByLabelText('Practice topic'), 'Git')
     await user.click(screen.getByRole('button', { name: 'Discard and Change Settings' }))
@@ -687,13 +687,13 @@ describe('Typing Coach application', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    expect(screen.getByText('Your progress will appear after your first completed session.')).toBeVisible()
-    expect(screen.queryByText('Tests Completed')).not.toBeInTheDocument()
+    expect(screen.getByText('Your progress starts with one practice session.')).toBeVisible()
+    expect(screen.queryByText('Sessions Completed')).not.toBeInTheDocument()
     await user.type(screen.getByRole('textbox', { name: 'Your typing' }), 'A')
     await user.click(screen.getByRole('button', { name: 'Finish Test' }))
     await screen.findByRole('heading', { name: 'Your results' })
 
-    expect(screen.getByText('Tests Completed').nextElementSibling).toHaveTextContent('1')
+    expect(screen.getByText('Sessions Completed').nextElementSibling).toHaveTextContent('1')
     expect(screen.getByText('Best WPM').nextElementSibling).toHaveTextContent('42.3')
     expect(screen.getByText('Average Accuracy').nextElementSibling).toHaveTextContent('96.4%')
     expect(JSON.parse(window.localStorage.getItem('typing-coach:progress'))).toMatchObject({
@@ -735,7 +735,7 @@ describe('Typing Coach application', () => {
     await user.type(screen.getByRole('textbox', { name: 'Your typing' }), 'A')
     await user.click(screen.getByRole('button', { name: 'Finish Test' }))
 
-    expect(await screen.findByText('No major weak keys detected in this session.')).toBeVisible()
+    expect(await screen.findByText('Your keystrokes were consistent. Continue with your recommended practice.')).toBeVisible()
     expect(screen.queryByRole('heading', { name: 'Keys to Improve' })).not.toBeInTheDocument()
   })
 
@@ -770,7 +770,7 @@ describe('Typing Coach application', () => {
     await user.click(screen.getByRole('button', { name: 'Finish Test' }))
 
     expect(await screen.findByRole('heading', { name: 'Your results' })).toBeVisible()
-    expect(screen.getByText('No major weak keys detected in this session.')).toBeVisible()
+    expect(screen.getByText('Your keystrokes were consistent. Continue with your recommended practice.')).toBeVisible()
     expect(screen.queryByRole('heading', { name: 'Recommended Practice Words' })).not.toBeInTheDocument()
   })
 

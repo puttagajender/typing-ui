@@ -4,6 +4,7 @@ import AboutPage from './components/AboutPage'
 import CoachRecommendation from './components/CoachRecommendation'
 import ErrorMessage from './components/ErrorMessage'
 import LandingHero from './components/LandingHero'
+import NotFoundPage from './components/NotFoundPage'
 import PracticeSession from './components/PracticeSession'
 import PrivacyPolicyPage from './components/PrivacyPolicyPage'
 import ProgressDashboard from './components/ProgressDashboard'
@@ -376,7 +377,7 @@ function TypingCoachHome() {
             <div className="session-confirmation" role="alert" aria-labelledby="session-confirmation-title" aria-describedby="session-confirmation-description">
               <div><strong id="session-confirmation-title">Keep your current practice?</strong><span id="session-confirmation-description">Your current progress will be cleared if you {pendingSessionChange.description}.</span></div>
               <div className="session-confirmation-actions">
-                <button className="button button-secondary" type="button" onClick={() => setPendingSessionChange(null)}>Continue Current Test</button>
+                <button className="button button-secondary" type="button" onClick={() => setPendingSessionChange(null)}>Continue Current Practice</button>
                 <button className="button button-danger" type="button" onClick={discardAndContinue}>Discard and Change Settings</button>
               </div>
             </div>
@@ -402,7 +403,15 @@ function TypingCoachHome() {
         />
 
         <p className="sr-only" aria-live="assertive">{completionAnnouncement}</p>
-        {isSubmitting && <div className="notification notification-loading" role="status" aria-live="polite"><span className="loading-spinner" aria-hidden="true" /><div><strong>Analysing your typing...</strong><span>{isServiceWaking ? 'Your typing coach is getting ready. This may take a few moments.' : 'Your improvement insights will be ready shortly.'}</span></div></div>}
+        {isSubmitting && (
+          <div className="notification notification-loading" role="status" aria-live="polite" aria-atomic="true">
+            <span className="loading-spinner" aria-hidden="true" />
+            <div>
+              <strong>{isServiceWaking ? 'Preparing your analysis...' : 'Analysing your typing...'}</strong>
+              <span>{isServiceWaking ? 'The analysis service is starting. This may take a few moments.' : 'Checking accuracy, speed, and mistakes.'}</span>
+            </div>
+          </div>
+        )}
         <ErrorMessage message={error} onRetry={retryAnalysis} onRestart={restartTest} />
         {result && (
           <>
@@ -430,9 +439,10 @@ function TypingCoachHome() {
 
 function App() {
   const path = window.location.pathname.replace(/\/$/, '')
+  if (path === '') return <TypingCoachHome />
   if (path === '/about') return <AboutPage />
   if (path === '/privacy') return <PrivacyPolicyPage />
-  return <TypingCoachHome />
+  return <NotFoundPage />
 }
 
 export default App

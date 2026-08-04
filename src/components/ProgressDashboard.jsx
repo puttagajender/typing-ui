@@ -27,13 +27,13 @@ function ProgressDashboard({ progress, difficulty }) {
       </div>
       {!hasCompletedSession ? (
         <div className="progress-empty">
-          <strong>Track your improvement from your first completed session.</strong>
-          <span>Complete a practice passage to establish your starting point.</span>
+          <strong>Your progress starts with one practice session.</strong>
+          <span>Complete a passage to track WPM, accuracy, and practice time.</span>
         </div>
       ) : <div className="dashboard-grid">
         <article className="dashboard-card dashboard-summary">
           <h3>Today&apos;s Summary</h3>
-          <strong>{practicedToday ? 'Practice complete' : 'Ready to practise'}</strong>
+          <strong>{practicedToday ? 'Practice complete' : 'Ready to practice'}</strong>
           <span>{progress.totalCharactersTyped.toLocaleString()} total characters · {progress.currentStreak} day streak</span>
         </article>
         <article className="dashboard-card"><h3>Best WPM</h3><strong>{progress.bestCorrectWpm.toFixed(1)}</strong><span>Gross {progress.bestGrossWpm.toFixed(1)}</span></article>

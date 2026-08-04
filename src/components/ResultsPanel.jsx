@@ -16,12 +16,12 @@ const hasOwnValue = (result, property) =>
   Object.prototype.hasOwnProperty.call(result, property) && result[property] !== null && result[property] !== undefined
 
 const formatDecimal = (result, property, suffix = '') => {
-  if (!hasOwnValue(result, property)) return 'Not available'
+  if (!hasOwnValue(result, property)) return 'Not reported'
   return `${Number(result[property]).toFixed(1)}${suffix}`
 }
 
 const formatCount = (result, property) => {
-  if (!hasOwnValue(result, property)) return 'Not available'
+  if (!hasOwnValue(result, property)) return 'Not reported'
   return Math.round(Number(result[property])).toString()
 }
 
@@ -29,7 +29,7 @@ const getCpm = (result) => {
   if (hasOwnValue(result, 'cpm')) return Number(result.cpm).toFixed(1)
   if (hasOwnValue(result, 'charactersPerMinute')) return Number(result.charactersPerMinute).toFixed(1)
   if (hasOwnValue(result, 'grossWpm')) return (Number(result.grossWpm) * 5).toFixed(1)
-  return 'Not available'
+  return 'Not reported'
 }
 
 function MetricLabel({ label }) {
@@ -65,7 +65,7 @@ const ResultsPanel = forwardRef(function ResultsPanel({ result }, ref) {
 
   return (
     <section ref={ref} className="results-panel" aria-labelledby="results-heading" tabIndex="-1">
-      <div className="results-topline"><p className="eyebrow">Practice complete</p><h2 id="results-heading">Your improvement snapshot</h2></div>
+      <div className="results-topline"><p className="eyebrow">Practice complete</p><h2 id="results-heading">Your results</h2></div>
       <dl className="result-primary-metrics" aria-label="Primary typing statistics">
         {primaryMetrics.map(([label, value]) => <Metric className="result-primary-metric" key={label} label={label} value={value} />)}
       </dl>

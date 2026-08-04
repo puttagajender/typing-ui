@@ -27,19 +27,19 @@ describe('result screen', () => {
     expect(primaryMetrics.querySelectorAll('.result-primary-metric')).toHaveLength(2)
   })
 
-  it('formats valid zero counts as zero and optional values as Not available', () => {
+  it('formats valid zero counts as zero and optional values as Not reported', () => {
     render(<ResultsPanel result={{ ...result, grossWpm: null, extraCharacterCount: undefined }} />)
 
     expect(metricValue('Mistakes')).toHaveTextContent('0')
     expect(metricValue('Wrong Characters')).toHaveTextContent('0')
     expect(metricValue('Missing Characters')).toHaveTextContent('0')
-    expect(metricValue('Gross WPM')).toHaveTextContent('Not available')
-    expect(metricValue('Extra Characters')).toHaveTextContent('Not available')
+    expect(metricValue('Gross WPM')).toHaveTextContent('Not reported')
+    expect(metricValue('Extra Characters')).toHaveTextContent('Not reported')
   })
 
   it('renders safely when optional result fields are omitted', () => {
     expect(() => render(<ResultsPanel result={{ correctWpm: 20, accuracy: 80 }} />)).not.toThrow()
-    expect(screen.getAllByText('Not available').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Not reported').length).toBeGreaterThan(0)
   })
 
   it('displays CPM and accessible explanations for every statistic', () => {
@@ -58,7 +58,7 @@ describe('result screen', () => {
     const onChooseAnother = vi.fn()
     render(<CoachRecommendation recommendation={{ nextDifficulty: 'INTERMEDIATE', suggestedCategory: 'Java', suggestedDuration: 60, explanation: 'Keep a steady rhythm.', metrics: { accuracy: 99, wpmGap: 2 } }} onContinue={onContinue} onPracticeAgain={onPracticeAgain} onChooseAnother={onChooseAnother} />)
 
-    expect(screen.getByText('Excellent accuracy. You are ready for a harder passage.')).toBeVisible()
+    expect(screen.getByText('Excellent accuracy. Build your skills with a harder passage.')).toBeVisible()
     expect(screen.getByText('Recommended difficulty')).toBeVisible()
     expect(screen.getByText('Friendly level name')).toBeVisible()
     expect(screen.getByText('Reason')).toBeVisible()
@@ -72,7 +72,7 @@ describe('result screen', () => {
 
   it('shows a useful state when a recommendation is unavailable', () => {
     render(<CoachRecommendation recommendation={null} />)
-    expect(screen.getByText('Complete another session to receive personalised recommendations.')).toBeVisible()
+    expect(screen.getByText('Complete your first typing session to unlock personalized recommendations.')).toBeVisible()
   })
 
   it('hides missing recommendation values cleanly', () => {

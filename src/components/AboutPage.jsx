@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import SiteFooter from './SiteFooter'
 
 const ABOUT_TITLE = 'About Typing Coach – Our Mission for Better Typing'
-const ABOUT_DESCRIPTION = 'Learn why Typing Coach was built, who it helps, and how focused practice, clear analysis, and personalised guidance support touch typing improvement.'
+const ABOUT_DESCRIPTION = 'Learn why Typing Coach was built, who it helps, and how focused practice, clear analysis, and personalized guidance support touch typing improvement.'
 
 function AboutPage() {
   useEffect(() => {
@@ -43,7 +43,7 @@ function AboutPage() {
 
           <section aria-labelledby="our-vision">
             <h2 id="our-vision">Our Vision</h2>
-            <p>Our vision is to make confident touch typing an achievable skill for anyone who uses a keyboard. Typing Coach aims to connect learning, practice, analysis, and personalised guidance in one approachable platform—from the first home-row exercise to advanced professional goals.</p>
+            <p>Our vision is to make confident touch typing an achievable skill for anyone who uses a keyboard. Typing Coach aims to connect learning, practice, analysis, and personalized guidance in one approachable platform—from the first home-row exercise to advanced professional goals.</p>
           </section>
 
           <section aria-labelledby="our-mission">
@@ -58,7 +58,7 @@ function AboutPage() {
 
           <section className="about-difference" aria-labelledby="what-makes-different">
             <h2 id="what-makes-different">More Than an Ordinary Typing Test</h2>
-            <p>Ordinary typing tests usually report WPM and accuracy after one attempt. Typing Coach combines those measurements with character-level analysis, weak-key feedback, progress tracking, flexible practice settings, and recommendations for the next session. Instead of asking only “How fast did you type?”, it helps answer “What should you practise next?”</p>
+            <p>Ordinary typing tests usually report WPM and accuracy after one attempt. Typing Coach combines those measurements with character-level analysis, weak-key feedback, progress tracking, flexible practice settings, and recommendations for the next session. Instead of asking only “How fast did you type?”, it helps answer “What should you practice next?”</p>
           </section>
         </div>
       </main>

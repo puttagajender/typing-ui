@@ -33,25 +33,25 @@ export async function analyzeTyping(attempt) {
 
       if (response.status >= 400 && response.status < 500) {
         if (response.status === 400 && detail) throw new Error(detail)
-        throw new Error('The analysis service could not process this request. Please try again.')
+        throw new Error('Your practice is safe. Review your input, then retry analysis.')
       }
-      throw new Error('The analysis service is unavailable right now. Please try again.')
+      throw new Error('Your practice is safe. The analysis service is unavailable, so please try again shortly.')
     }
 
     const result = await response.json()
     return result
   } catch (error) {
     if (error?.name === 'AbortError') {
-      throw new Error('The analysis took too long. Please retry.', { cause: error })
+      throw new Error('Your practice is safe. The analysis took too long, so please retry.', { cause: error })
     }
     if (error instanceof TypeError) {
       throw new Error(
-        'We could not reach the analysis service. Please try again.',
+        'Your practice is safe. Check your connection, then retry analysis.',
         { cause: error },
       )
     }
     if (error instanceof SyntaxError) {
-      throw new Error('The analysis service returned an unexpected response. Please try again.', { cause: error })
+      throw new Error('Your practice is safe. We received an unexpected response, so please retry analysis.', { cause: error })
     }
     throw error
   }

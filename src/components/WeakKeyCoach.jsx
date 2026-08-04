@@ -1,7 +1,7 @@
 import { normalizePracticeWords, normalizeWeakKeys } from '../utils/weakKeyPractice'
 
 const formatMistakeType = (value) => {
-  if (!value) return 'Not available'
+  if (!value) return 'Not reported'
   return String(value).toLowerCase().replaceAll('_', ' ').replace(/^./, (character) => character.toUpperCase())
 }
 
@@ -13,7 +13,7 @@ function WeakKeyCoach({ result, onPractice }) {
     : null
 
   if (!weakKeys.length) {
-    return <p className="weak-keys-positive" role="status">Your keystrokes were consistent across this practice.</p>
+    return <p className="weak-keys-positive" role="status">Your keystrokes were consistent. Continue with your recommended practice.</p>
   }
 
   return (
@@ -28,8 +28,8 @@ function WeakKeyCoach({ result, onPractice }) {
           <article className="weak-key-card" key={`${item.character}-${index}`}>
             <strong className="weak-key-character">{String(item.character) === ' ' ? 'Space' : item.character}</strong>
             <dl>
-              <div><dt>Mistakes</dt><dd>{Number.isFinite(item.mistakeCount) ? Math.round(item.mistakeCount) : 'Not available'}</dd></div>
-              <div><dt>Percentage</dt><dd>{Number.isFinite(item.mistakePercentage) ? `${item.mistakePercentage.toFixed(1)}%` : 'Not available'}</dd></div>
+              <div><dt>Mistakes</dt><dd>{Number.isFinite(item.mistakeCount) ? Math.round(item.mistakeCount) : 'Not reported'}</dd></div>
+              <div><dt>Percentage</dt><dd>{Number.isFinite(item.mistakePercentage) ? `${item.mistakePercentage.toFixed(1)}%` : 'Not reported'}</dd></div>
               <div><dt>Type</dt><dd>{formatMistakeType(item.dominantMistakeType)}</dd></div>
             </dl>
           </article>

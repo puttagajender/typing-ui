@@ -41,7 +41,7 @@ describe('typing API service', () => {
   it('returns a friendly message for a network failure', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
 
-    await expect(analyzeTyping(attempt)).rejects.toThrow('We could not reach the analysis service')
+    await expect(analyzeTyping(attempt)).rejects.toThrow('Your practice is safe. Check your connection, then retry analysis.')
   })
 
   it('hides raw server error details behind a friendly message', async () => {
@@ -51,7 +51,7 @@ describe('typing API service', () => {
       json: vi.fn().mockResolvedValue({ message: 'Internal Server Error: stack trace' }),
     }))
 
-    await expect(analyzeTyping(attempt)).rejects.toThrow('The analysis service is unavailable right now. Please try again.')
+    await expect(analyzeTyping(attempt)).rejects.toThrow('Your practice is safe. The analysis service is unavailable, so please try again shortly.')
   })
 
   it('returns a friendly message for an invalid JSON response', async () => {
@@ -60,7 +60,7 @@ describe('typing API service', () => {
       json: vi.fn().mockRejectedValue(new SyntaxError('Unexpected token')),
     }))
 
-    await expect(analyzeTyping(attempt)).rejects.toThrow('The analysis service returned an unexpected response. Please try again.')
+    await expect(analyzeTyping(attempt)).rejects.toThrow('Your practice is safe. We received an unexpected response, so please retry analysis.')
   })
 
   it('returns a friendly message for a missing analysis endpoint', async () => {
@@ -70,7 +70,7 @@ describe('typing API service', () => {
       json: vi.fn().mockResolvedValue({ message: 'Not Found' }),
     }))
 
-    await expect(analyzeTyping(attempt)).rejects.toThrow('The analysis service could not process this request. Please try again.')
+    await expect(analyzeTyping(attempt)).rejects.toThrow('Your practice is safe. Review your input, then retry analysis.')
   })
 
   it('times out a request that takes too long', async () => {
@@ -80,7 +80,7 @@ describe('typing API service', () => {
     })))
 
     const request = analyzeTyping(attempt)
-    const rejection = expect(request).rejects.toThrow('The analysis took too long. Please retry.')
+    const rejection = expect(request).rejects.toThrow('Your practice is safe. The analysis took too long, so please retry.')
     await vi.advanceTimersByTimeAsync(45000)
     await rejection
   })

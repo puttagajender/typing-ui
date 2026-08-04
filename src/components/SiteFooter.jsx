@@ -6,7 +6,6 @@ function SiteFooter() {
       <div className="content-shell footer-layout">
         <div className="footer-brand">
           <strong>Typing Coach</strong>
-          <p>Helping people master touch typing.</p>
         </div>
 
         <nav className="footer-navigation" aria-label="Footer navigation">

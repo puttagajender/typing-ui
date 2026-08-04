@@ -18,8 +18,8 @@ const coachingMessage = (recommendation) => {
   if (accuracy >= 98) return 'Excellent accuracy. Build your skills with a harder passage.'
   if (accuracy >= 94 && wpmGap <= 5) return 'Strong pace. Stay at this level and refine your accuracy.'
   if (accuracy > 0 && accuracy < 90) return 'Build accuracy first with slower, cleaner keystrokes.'
-  if (accuracy > 0) return 'Your accuracy is improving. Practise this level once more.'
-  return 'Your personalised next practice is ready.'
+  if (accuracy > 0) return 'Your accuracy is improving. Practice this level once more.'
+  return 'Your personalized next practice is ready.'
 }
 
 function CoachRecommendation({ recommendation, onContinue, onPracticeAgain, onChooseAnother }) {
@@ -27,7 +27,7 @@ function CoachRecommendation({ recommendation, onContinue, onPracticeAgain, onCh
     return (
       <section className="coach-card coach-empty" aria-labelledby="coach-heading">
         <h2 id="coach-heading">Your next practice</h2>
-        <p>Complete another practice session for personalised improvement guidance.</p>
+        <p>Complete your first typing session to unlock personalized recommendations.</p>
       </section>
     )
   }
