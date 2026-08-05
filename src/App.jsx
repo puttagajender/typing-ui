@@ -6,6 +6,7 @@ import ErrorMessage from './components/ErrorMessage'
 import LandingHero from './components/LandingHero'
 import NotFoundPage from './components/NotFoundPage'
 import PracticeSession from './components/PracticeSession'
+import PreviousTestComparison from './components/PreviousTestComparison'
 import PrivacyPolicyPage from './components/PrivacyPolicyPage'
 import ProgressDashboard from './components/ProgressDashboard'
 import ResultsPanel from './components/ResultsPanel'
@@ -20,6 +21,7 @@ import { analyzeTyping } from './services/typingApi'
 import { createCoachRecommendation } from './services/recommendationEngine'
 import { loadRecommendation, saveRecommendation } from './services/recommendationStorage'
 import { loadPracticeSettings, savePracticeSettings } from './services/practiceStorage'
+import { createSessionSnapshot, loadPreviousSession, savePreviousSession } from './services/previousSessionStorage'
 import { loadProgress, saveProgress, updateProgress } from './services/progressStorage'
 import { getAttemptedOriginalText } from './utils/alignText'
 import { selectPassage } from './utils/passageSelection'
@@ -58,6 +60,7 @@ function TypingCoachHome() {
   const [storedRecommendation, setStoredRecommendation] = useState(loadRecommendation)
   const [isWelcomeDismissed, setIsWelcomeDismissed] = useState(false)
   const [progress, setProgress] = useState(loadProgress)
+  const [sessionComparison, setSessionComparison] = useState(null)
   const startPerformanceRef = useRef(null)
   const submissionStartedRef = useRef(false)
   const inputRef = useRef(null)
@@ -109,13 +112,20 @@ function TypingCoachHome() {
   }, [isSubmitting])
 
   const handleAnalysisResult = useCallback((analysis, submittedText) => {
+    const currentSession = createSessionSnapshot(analysis, {
+      difficulty,
+      category,
+      duration: timedDuration ?? analysis.durationInSeconds,
+    })
+    setSessionComparison({ currentSession, previousSession: loadPreviousSession() })
+    savePreviousSession(currentSession)
     setResult(analysis)
     setProgress((currentProgress) => {
       const nextProgress = updateProgress(currentProgress, analysis, submittedText.length)
       saveProgress(nextProgress)
       return nextProgress
     })
-  }, [])
+  }, [category, difficulty, timedDuration])
 
   const submitAttempt = useCallback(async (textToSubmit, automatic = false, attemptStartedAt = startedAt) => {
     if (!attemptStartedAt || submissionStartedRef.current || textToSubmit.length === 0) return
@@ -417,6 +427,7 @@ function TypingCoachHome() {
           <>
             <div className="notification notification-success" role="status"><span className="notification-icon" aria-hidden="true">✓</span><div><strong>Practice analysed</strong><span>Your improvement insights are ready.</span></div></div>
             <ResultsPanel ref={resultsRef} result={result}>
+              {sessionComparison && <PreviousTestComparison currentSession={sessionComparison.currentSession} previousSession={sessionComparison.previousSession} />}
               <CoachRecommendation recommendation={recommendation} onContinue={() => continueRecommendedPractice(recommendation)} onPracticeAgain={restartTest} onChooseAnother={chooseAnotherPractice} />
             </ResultsPanel>
             <WeakKeyCoach result={result} onPractice={practiceWeakKeys} />

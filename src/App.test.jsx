@@ -483,11 +483,24 @@ describe('Typing Coach application', () => {
     await user.type(screen.getByRole('textbox', { name: 'Your typing' }), 'A')
     await user.click(screen.getByRole('button', { name: 'Finish Test' }))
 
-    expect(await screen.findByRole('heading', { name: 'Coach Recommendation' })).toBeVisible()
+    const comparisonHeading = await screen.findByRole('heading', { name: 'Compared with your previous session' })
+    const coachHeading = screen.getByRole('heading', { name: 'Coach Recommendation' })
+    expect(comparisonHeading).toBeVisible()
+    expect(screen.getByText('This is your first completed session.')).toBeVisible()
+    expect(comparisonHeading.closest('section').nextElementSibling).toContainElement(coachHeading)
     expect(screen.getByRole('button', { name: 'Continue Recommended Practice' })).toBeVisible()
     expect(screen.getByRole('button', { name: 'Practice Again' })).toBeVisible()
     expect(screen.getByRole('button', { name: 'Choose Another Practice' })).toBeVisible()
     await waitFor(() => expect(window.localStorage.getItem('typing-coach:last-recommendation')).not.toBeNull())
+    expect(JSON.parse(window.localStorage.getItem('typing-coach:latest-session'))).toMatchObject({
+      correctWpm: 42.3,
+      grossWpm: 45.7,
+      accuracy: 96.4,
+      mistakeCount: 4,
+      duration: 60,
+      difficulty: 'BEGINNER',
+      category: 'General English',
+    })
   })
 
   it('continues with the recommended duration and clears the completed result', async () => {
