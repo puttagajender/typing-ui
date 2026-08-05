@@ -11,6 +11,31 @@ const styleByType = {
 
 function TypingPassage({ originalText, typedText, comparisonItems }) {
   const comparison = getComparison(originalText, typedText, comparisonItems)
+  const referenceCharacters = Array.from(originalText)
+  const characterTypes = referenceCharacters.map(() => 'UNTYPED')
+  const extrasByPosition = new Map()
+
+  comparison.forEach((item) => {
+    if (item.type === COMPARISON_TYPES.EXTRA_CHARACTER) {
+      const position = Math.max(0, Math.min(item.originalIndex ?? 0, referenceCharacters.length))
+      const extras = extrasByPosition.get(position) ?? []
+      extras.push(item.typedCharacter)
+      extrasByPosition.set(position, extras)
+    } else if (item.originalIndex >= 0 && item.originalIndex < referenceCharacters.length) {
+      characterTypes[item.originalIndex] = item.type
+    }
+  })
+
+  const renderExtraMarkers = (position) => (extrasByPosition.get(position) ?? []).map((character, index) => (
+    <span
+      aria-label={`Extra character ${character}`}
+      className="extra-character-marker"
+      data-comparison-type={COMPARISON_TYPES.EXTRA_CHARACTER}
+      data-extra-character={character}
+      key={`extra-${position}-${index}`}
+      role="img"
+    />
+  ))
 
   return (
     <div className="passage-area">
@@ -23,22 +48,19 @@ function TypingPassage({ originalText, typedText, comparisonItems }) {
         <span><i className="legend-swatch untyped" aria-hidden="true" />Untyped</span>
       </div>
       <div className="typing-passage" aria-label="Text to type" onClick={() => document.getElementById('typing-input')?.focus()}>
-        {comparison.map((item, index) => {
-          const style = styleByType[item.type] ?? 'untyped'
-          const isExtra = item.type === COMPARISON_TYPES.EXTRA_CHARACTER
-          const character = isExtra ? item.typedCharacter : item.expectedCharacter
-
-          return (
+        {referenceCharacters.map((character, index) => (
+          <span key={`reference-${index}`}>
+            {renderExtraMarkers(index)}
             <span
-              className={`passage-character ${style}`}
-              data-comparison-type={item.type}
-              key={`${item.originalIndex}-${item.type}-${index}`}
-              aria-label={isExtra ? `Extra character ${character}` : undefined}
+              className={`passage-character ${styleByType[characterTypes[index]] ?? 'untyped'}`}
+              data-comparison-type={characterTypes[index]}
+              data-original-index={index}
             >
               {character}
             </span>
-          )
-        })}
+          </span>
+        ))}
+        {renderExtraMarkers(referenceCharacters.length)}
       </div>
     </div>
   )

@@ -107,7 +107,8 @@ h2 { margin: 0; font-size: clamp(1.2rem, 3vw, 1.5rem); line-height: 1.2; letter-
 .passage-character.correct { color: #087453; background: #dcf5e9; }
 .passage-character.incorrect { color: #92251d; background: #ffe1df; }
 .passage-character.missing { color: var(--color-warning); background: #fff1dc; box-shadow: inset 0 -2px #d89547; }
-.passage-character.extra { margin-inline: 2px; padding-inline: 2px; color: #67439b; background: #eee8fa; box-shadow: inset 0 -2px #9a7cc7; }
+.extra-character-marker { position: relative; display: inline-block; width: 0; height: 1em; vertical-align: baseline; }
+.extra-character-marker::after { position: absolute; z-index: 1; bottom: 72%; left: 0; min-width: 0.85em; padding: 0 2px; border: 1px solid #9a7cc7; border-radius: 3px; background: #eee8fa; color: #67439b; content: attr(data-extra-character); font-size: 0.68em; font-weight: 750; line-height: 1.15; text-align: center; transform: translateX(-50%); }
 .passage-character.current { color: #182825; background: #f5c95d; box-shadow: 0 0 0 2px rgba(245, 201, 93, 0.25); }
 .passage-character.untyped { color: #7b8884; background: transparent; }
 
