@@ -3,144 +3,90 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import App from '../App'
 import HomeRowLesson from './HomeRowLesson'
 import LearnHome from './LearnHome'
-import { LEARNING_PROGRESS_KEY, loadLearningProgress } from '../services/learningProgressStorage'
-import { GUIDED_EXERCISES, HOME_ROW_EXERCISES, WORD_EXERCISES } from '../utils/homeRowLesson'
 
-const startPractice = () => {
-  fireEvent.click(screen.getByRole('button', { name: 'Continue to Finger Guide' }))
-  fireEvent.click(screen.getByRole('button', { name: 'Start Practice' }))
-}
+const beginLesson = () => fireEvent.click(screen.getByRole('button', { name: 'Begin Warm-up' }))
 
 describe('Build Muscle Memory module', () => {
-  beforeEach(() => {
-    window.localStorage.clear()
-    window.history.replaceState({}, '', '/')
-  })
+  beforeEach(() => { window.localStorage.clear(); window.history.replaceState({}, '', '/') })
 
-  it('shows the entry point on Practice and routes to the learning home', () => {
+  it('keeps Practice as home and links to the learning module', () => {
     const { unmount } = render(<App />)
     expect(screen.getByRole('link', { name: 'New to touch typing? Build Muscle Memory →' })).toHaveAttribute('href', '/learn')
-    unmount()
-
-    window.history.replaceState({}, '', '/learn')
-    render(<App />)
+    unmount(); window.history.replaceState({}, '', '/learn'); render(<App />)
     expect(screen.getByRole('heading', { name: 'Build Muscle Memory', level: 1 })).toBeVisible()
   })
 
-  it('shows Lesson 1 for a new learner and links to the lesson', () => {
+  it('shows the existing lessons without adding keyboard content', () => {
     render(<LearnHome />)
     expect(screen.getByRole('heading', { name: 'Home Row Foundation' })).toBeVisible()
-    expect(screen.getByText('Lessons completed').nextElementSibling).toHaveTextContent('0')
-    expect(screen.getByRole('link', { name: 'Start Lesson' })).toHaveAttribute('href', '/learn/home-row')
+    expect(screen.getByRole('heading', { name: 'Top Row Introduction — E and I' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Bottom Row Introduction — C and N' })).toBeVisible()
   })
 
-  it('routes to the home-row lesson and shows finger placement instructions', () => {
-    window.history.replaceState({}, '', '/learn/home-row')
-    render(<App />)
-    expect(screen.getByRole('heading', { name: 'Home Row Foundation', level: 1 })).toBeVisible()
-    fireEvent.click(screen.getByRole('button', { name: 'Continue to Finger Guide' }))
-    expect(screen.getByText('Left pinky rests on A')).toBeVisible()
-    expect(screen.getByText(/F and J usually have raised bumps/)).toBeVisible()
-    expect(screen.getByLabelText('Home row keyboard layout')).toBeInTheDocument()
-  })
-
-  it('shows the lesson introduction before any typing exercise', () => {
+  it('starts with a complete Learn phase and no typing input', () => {
     render(<HomeRowLesson />)
-    expect(screen.getByText(/Every finger has a permanent home/)).toBeVisible()
-    expect(screen.getByText(/This habit is called touch typing/)).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Learn' })).toBeVisible()
+    expect(screen.getByText('Finger placement')).toBeVisible()
+    expect(screen.getByText('Finger movement')).toBeVisible()
+    expect(screen.getByText('Home position')).toBeVisible()
+    expect(screen.getByText('Common mistakes')).toBeVisible()
     expect(screen.queryByLabelText('Type the exercise')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('Home row keyboard layout')).not.toBeInTheDocument()
   })
 
-  it('advances to the next guided exercise automatically', () => {
+  it('shows all seven phases in order', () => {
     render(<HomeRowLesson />)
-    startPractice()
-    const input = screen.getByLabelText('Type the exercise')
-    expect(screen.getByText('f j f j')).toBeVisible()
-
-    fireEvent.change(input, { target: { value: 'f j f j' } })
-    expect(screen.getByText('d k d k')).toBeVisible()
-    expect(screen.queryByText('s l s l')).not.toBeInTheDocument()
-    expect(input).toHaveValue('')
-    expect(input).toHaveFocus()
+    expect(Array.from(screen.getByLabelText('Lesson phases').children, (item) => item.textContent)).toEqual(['Learn', 'Warm-up', 'Movement Practice', 'Word Practice', 'Mini Challenge', 'Weak Key Recovery', 'Lesson Review'])
   })
 
-  it('shows encouraging feedback after an exercise', () => {
-    render(<HomeRowLesson />)
-    startPractice()
-    fireEvent.change(screen.getByLabelText('Type the exercise'), { target: { value: 'f j f j' } })
+  it('unlocks varied warm-ups sequentially with encouraging feedback', () => {
+    render(<HomeRowLesson />); beginLesson()
+    const first = screen.getByLabelText(/Type:/).textContent
+    fireEvent.change(screen.getByLabelText('Type the exercise'), { target: { value: first } })
+    const second = screen.getByLabelText(/Type:/).textContent
+    expect(second).not.toBe(first)
     expect(screen.getByText('✓ Great!')).toBeVisible()
+    expect(screen.getByLabelText('Type the exercise')).toHaveFocus()
   })
 
-  it('uses supportive feedback when a key needs improvement', () => {
-    render(<HomeRowLesson />)
-    startPractice()
-    const input = screen.getByLabelText('Type the exercise')
-    fireEvent.change(input, { target: { value: 'x' } })
-    fireEvent.change(input, { target: { value: '' } })
-    fireEvent.change(input, { target: { value: 'f j f j' } })
-    expect(screen.getByText('Let’s improve one key before continuing.')).toBeVisible()
-  })
-
-  it('shows live key, accuracy, and progress without WPM', () => {
-    render(<HomeRowLesson />)
-    startPractice()
-    const feedback = screen.getByLabelText('Live exercise feedback')
-    expect(feedback).toHaveTextContent('Current keyF')
-    expect(feedback).toHaveTextContent('Current accuracy100.0%')
-    expect(feedback).toHaveTextContent('Current progress0%')
+  it('shows accuracy and progress without WPM or a timer', () => {
+    render(<HomeRowLesson />); beginLesson()
+    expect(screen.getByLabelText('Live exercise feedback')).toHaveTextContent('Accuracy100.0%')
+    expect(screen.getByLabelText('Live exercise feedback')).toHaveTextContent('Progress0%')
     expect(screen.queryByText(/WPM/i)).not.toBeInTheDocument()
+    expect(screen.getByText(/There is no timer/)).toBeVisible()
   })
 
-  it('shows the lesson completion summary and next-lesson placeholder', () => {
-    render(<HomeRowLesson />)
-    startPractice()
-    ;[...GUIDED_EXERCISES, ...HOME_ROW_EXERCISES, ...WORD_EXERCISES].forEach((target) => {
-      fireEvent.change(screen.getByLabelText('Type the exercise'), { target: { value: target } })
-    })
-
-    expect(screen.getByRole('heading', { name: 'Lesson Complete', level: 2 })).toBeVisible()
-    expect(screen.getByText('Accuracy')).toBeVisible()
-    expect(screen.getByText('Most improved key')).toBeVisible()
-    expect(screen.getByText('Weakest key')).toBeVisible()
-    expect(screen.getByText('Time spent')).toBeVisible()
-    expect(screen.getByText('Next lesson').nextElementSibling).toHaveTextContent('Coming Soon')
-  })
-
-  it('blocks paste during guided practice', () => {
-    render(<HomeRowLesson />)
-    startPractice()
+  it('blocks paste and provides escape navigation', () => {
+    render(<HomeRowLesson />); beginLesson()
     const input = screen.getByLabelText('Type the exercise')
-    const pasteEvent = new Event('paste', { bubbles: true, cancelable: true })
-    input.dispatchEvent(pasteEvent)
-    expect(pasteEvent.defaultPrevented).toBe(true)
-    expect(input).toHaveValue('')
-  })
-
-  it('stores stage progress without typed lesson content', () => {
-    render(<HomeRowLesson />)
-    startPractice()
-    const stored = JSON.parse(window.localStorage.getItem(LEARNING_PROGRESS_KEY))
-    expect(stored).toMatchObject({ currentLesson: 'home-row', lastAttemptedStage: 'guided' })
-    expect(stored).not.toHaveProperty('typedText')
-    expect(loadLearningProgress().completedLessonIds).toEqual([])
-  })
-
-  it('handles corrupted learning progress safely', () => {
-    window.localStorage.setItem(LEARNING_PROGRESS_KEY, '{invalid')
-    expect(() => render(<LearnHome />)).not.toThrow()
-    expect(screen.getByText('Lessons completed').nextElementSibling).toHaveTextContent('0')
-  })
-
-  it('provides navigation back to Practice without trapping the learner', () => {
-    render(<HomeRowLesson />)
+    const event = new Event('paste', { bubbles: true, cancelable: true }); input.dispatchEvent(event)
+    expect(event.defaultPrevented).toBe(true)
     expect(screen.getByRole('link', { name: 'Back to Practice' })).toHaveAttribute('href', '/')
-    expect(screen.getByRole('link', { name: 'Build Muscle Memory home' })).toHaveAttribute('href', '/learn')
+    expect(screen.getByRole('link', { name: 'Back to Build Muscle Memory' })).toHaveAttribute('href', '/learn')
   })
 
-  it('uses a responsive lesson grid without fixed-width inline content', () => {
+  it('progresses through recovery into a complete lesson review', () => {
+    render(<HomeRowLesson />); beginLesson()
+    let guard = 0
+    while (!screen.queryByRole('heading', { name: 'Lesson Review' }) && guard < 100) {
+      const target = screen.getByLabelText(/Type:/).textContent
+      fireEvent.change(screen.getByLabelText('Type the exercise'), { target: { value: target } })
+      guard += 1
+    }
+    expect(guard).toBeLessThan(100)
+    expect(screen.getByText('Time spent')).toBeVisible()
+    expect(screen.getByText('Strongest key')).toBeVisible()
+    expect(screen.getByText('Weakest key')).toBeVisible()
+    expect(screen.getByText('Exercises completed')).toBeVisible()
+    expect(screen.getByText('Words completed')).toBeVisible()
+    expect(screen.getByText('Recommendation')).toBeVisible()
+    expect(screen.getByRole('link', { name: 'Continue' })).toHaveAttribute('href', '/learn')
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeVisible()
+  })
+
+  it('uses responsive containers without fixed inline width', () => {
     const { container } = render(<HomeRowLesson />)
     expect(container.querySelector('.lesson-stage-layout')).toBeInTheDocument()
-    expect(container.querySelectorAll('[style*="min-width"], [style*="width"]')).toHaveLength(0)
+    expect(container.querySelectorAll('[style*="width"], [style*="min-width"]')).toHaveLength(0)
   })
 })
