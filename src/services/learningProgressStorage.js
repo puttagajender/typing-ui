@@ -5,7 +5,8 @@ export const EMPTY_LEARNING_PROGRESS = {
   completedLessonIds: [],
   bestLessonAccuracy: 0,
   weakKeys: [],
-  lastAttemptedStage: 'learn',
+  lastAttemptedStage: 'understand',
+  lessons: {},
 }
 
 export function loadLearningProgress() {
@@ -18,11 +19,20 @@ export function loadLearningProgress() {
       completedLessonIds: Array.isArray(progress.completedLessonIds) ? progress.completedLessonIds.filter((id) => typeof id === 'string') : [],
       bestLessonAccuracy: Number.isFinite(Number(progress.bestLessonAccuracy)) ? Math.max(0, Math.min(100, Number(progress.bestLessonAccuracy))) : 0,
       weakKeys: Array.isArray(progress.weakKeys) ? progress.weakKeys.filter((key) => typeof key === 'string') : [],
-      lastAttemptedStage: typeof progress.lastAttemptedStage === 'string' ? progress.lastAttemptedStage : 'learn',
+      lastAttemptedStage: typeof progress.lastAttemptedStage === 'string' ? progress.lastAttemptedStage : 'understand',
+      lessons: progress.lessons && typeof progress.lessons === 'object' && !Array.isArray(progress.lessons) ? progress.lessons : {},
     }
   } catch {
     return EMPTY_LEARNING_PROGRESS
   }
+}
+
+export function saveLessonProgress(lessonId, lessonProgress) {
+  const current = loadLearningProgress()
+  saveLearningProgress({
+    ...current,
+    lessons: { ...current.lessons, [lessonId]: lessonProgress },
+  })
 }
 
 export function saveLearningProgress(progress) {

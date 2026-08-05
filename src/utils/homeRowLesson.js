@@ -4,6 +4,12 @@ export const WORD_EXERCISES = ['sad', 'dad', 'fall', 'ask', 'all', 'lad', 'flask
 
 const HOME_ROW_WORDS = ['sad', 'dad', 'fall', 'ask', 'all', 'lad', 'flask']
 const PAIR_PARTNERS = { a: 's', s: 'a', d: 's', f: 'd', j: 'k', k: 'j', l: 'k', ';': 'l' }
+const TOP_ROW_REPAIR = {
+  e: ['e e e e e', 'de ed', 'see see', 'side side'],
+  i: ['i i i i i', 'ki ik', 'like like', 'idea idea'],
+  c: ['c c c c c', 'dc cd', 'cn nc', 'can can', 'scan scan', 'dance dance'],
+  n: ['n n n n n', 'jn nj', 'cn nc', 'can can', 'nice nice', 'sand sand'],
+}
 
 export function calculateAccuracy(correctCharacters, totalCharacters) {
   if (totalCharacters <= 0) return 100
@@ -23,7 +29,9 @@ export function evaluateHomeRowMastery({ accuracy, guidedExercisesCompleted, mis
 }
 
 export function generateRepairDrill(key) {
-  const normalizedKey = typeof key === 'string' && 'asdfjkl;'.includes(key.toLowerCase()) ? key.toLowerCase() : 'f'
+  const requestedKey = typeof key === 'string' ? key.toLowerCase() : 'f'
+  if (TOP_ROW_REPAIR[requestedKey]) return TOP_ROW_REPAIR[requestedKey]
+  const normalizedKey = 'asdfjkl;'.includes(requestedKey) ? requestedKey : 'f'
   const partner = PAIR_PARTNERS[normalizedKey]
   const words = HOME_ROW_WORDS.filter((word) => word.includes(normalizedKey)).slice(0, 2)
   const fallbackWord = normalizedKey === ';' ? `l; ;l` : `${normalizedKey}${partner}${normalizedKey}`

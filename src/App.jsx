@@ -6,6 +6,8 @@ import ErrorMessage from './components/ErrorMessage'
 import LandingHero from './components/LandingHero'
 import LearnHome from './components/LearnHome'
 import HomeRowLesson from './components/HomeRowLesson'
+import TopRowLesson from './components/TopRowLesson'
+import BottomRowLesson from './components/BottomRowLesson'
 import NotFoundPage from './components/NotFoundPage'
 import PracticeSession from './components/PracticeSession'
 import PreviousTestComparison from './components/PreviousTestComparison'
@@ -456,6 +458,8 @@ function App() {
   if (path === '') return <TypingCoachHome />
   if (path === '/learn') return <LearnHome />
   if (path === '/learn/home-row') return <HomeRowLesson />
+  if (path === '/learn/top-row-e-i') return <TopRowLesson />
+  if (path === '/learn/bottom-row-c-n') return <BottomRowLesson />
   if (path === '/about') return <AboutPage />
   if (path === '/privacy') return <PrivacyPolicyPage />
   return <NotFoundPage />
