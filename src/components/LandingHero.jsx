@@ -13,9 +13,7 @@ function LandingHero() {
         <div className="product-hero-footer">
           <div className="product-hero-actions">
             <a className="button button-primary" href="#typing-test">Start Practicing</a>
-            <button className="button button-secondary" type="button" disabled>
-              Build Muscle Memory <span className="coming-soon">Coming Soon</span>
-            </button>
+            <a aria-label="New to touch typing? Build Muscle Memory →" className="beginner-entry" href="/learn"><span>New to touch typing?</span><strong>Build Muscle Memory →</strong></a>
             <p className="hero-next-step">Choose a level, type a passage, then follow your personalized next practice.</p>
           </div>
 

@@ -12,7 +12,7 @@ function SiteFooter() {
           <div className="footer-group">
             <h2>Product</h2>
             <a href="/#typing-test">Practice Typing</a>
-            <span aria-disabled="true">Build Muscle Memory <small>Coming Soon</small></span>
+            <a href="/learn">Build Muscle Memory</a>
           </div>
           <div className="footer-group">
             <h2>Resources</h2>

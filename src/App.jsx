@@ -4,6 +4,8 @@ import AboutPage from './components/AboutPage'
 import CoachRecommendation from './components/CoachRecommendation'
 import ErrorMessage from './components/ErrorMessage'
 import LandingHero from './components/LandingHero'
+import LearnHome from './components/LearnHome'
+import HomeRowLesson from './components/HomeRowLesson'
 import NotFoundPage from './components/NotFoundPage'
 import PracticeSession from './components/PracticeSession'
 import PreviousTestComparison from './components/PreviousTestComparison'
@@ -452,6 +454,8 @@ function TypingCoachHome() {
 function App() {
   const path = window.location.pathname.replace(/\/$/, '')
   if (path === '') return <TypingCoachHome />
+  if (path === '/learn') return <LearnHome />
+  if (path === '/learn/home-row') return <HomeRowLesson />
   if (path === '/about') return <AboutPage />
   if (path === '/privacy') return <PrivacyPolicyPage />
   return <NotFoundPage />
