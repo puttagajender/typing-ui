@@ -483,7 +483,7 @@ describe('Typing Coach application', () => {
     await user.type(screen.getByRole('textbox', { name: 'Your typing' }), 'A')
     await user.click(screen.getByRole('button', { name: 'Finish Test' }))
 
-    expect(await screen.findByRole('heading', { name: 'Your next best step' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Coach Recommendation' })).toBeVisible()
     expect(screen.getByRole('button', { name: 'Continue Recommended Practice' })).toBeVisible()
     expect(screen.getByRole('button', { name: 'Practice Again' })).toBeVisible()
     expect(screen.getByRole('button', { name: 'Choose Another Practice' })).toBeVisible()

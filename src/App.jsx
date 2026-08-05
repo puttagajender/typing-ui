@@ -416,9 +416,10 @@ function TypingCoachHome() {
         {result && (
           <>
             <div className="notification notification-success" role="status"><span className="notification-icon" aria-hidden="true">✓</span><div><strong>Practice analysed</strong><span>Your improvement insights are ready.</span></div></div>
-            <ResultsPanel ref={resultsRef} result={result} />
+            <ResultsPanel ref={resultsRef} result={result}>
+              <CoachRecommendation recommendation={recommendation} onContinue={() => continueRecommendedPractice(recommendation)} onPracticeAgain={restartTest} onChooseAnother={chooseAnotherPractice} />
+            </ResultsPanel>
             <WeakKeyCoach result={result} onPractice={practiceWeakKeys} />
-            <CoachRecommendation recommendation={recommendation} onContinue={() => continueRecommendedPractice(recommendation)} onPracticeAgain={restartTest} onChooseAnother={chooseAnotherPractice} />
           </>
         )}
 

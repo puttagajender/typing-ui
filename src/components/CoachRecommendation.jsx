@@ -38,19 +38,17 @@ function CoachRecommendation({ recommendation, onContinue, onPracticeAgain, onCh
   return (
     <section className="coach-card" aria-labelledby="coach-heading">
       <div className="coach-card-copy">
-        <p className="eyebrow">Coach recommendation</p>
-        <h2 id="coach-heading">Your next best step</h2>
+        <h2 id="coach-heading">Coach Recommendation</h2>
         <p className="coach-message">{coachingMessage(recommendation)}</p>
       </div>
       {hasRecommendationDetails && (
         <div className="coach-next-practice">
           <h3>Next practice</h3>
-          <dl className="coach-plan">
-            {difficulty && <div><dt>Recommended difficulty</dt><dd>{difficulty.level}</dd></div>}
-            {difficulty?.friendlyName && <div><dt>Friendly level name</dt><dd>{difficulty.friendlyName}</dd></div>}
-            {hasValue(recommendation.suggestedCategory) && <div><dt>Recommended category</dt><dd>{recommendation.suggestedCategory}</dd></div>}
-            {hasValue(recommendation.suggestedDuration) && <div><dt>Recommended duration</dt><dd>{Number(recommendation.suggestedDuration)} seconds</dd></div>}
-          </dl>
+          <p className="coach-plan-summary">
+            {[difficulty?.level, recommendation.suggestedCategory, hasValue(recommendation.suggestedDuration) ? `${Number(recommendation.suggestedDuration)} Seconds` : null]
+              .filter(Boolean)
+              .join(' • ')}
+          </p>
         </div>
       )}
       {hasValue(recommendation.explanation) && <div className="coach-reason"><strong>Reason</strong><p>{recommendation.explanation}</p></div>}

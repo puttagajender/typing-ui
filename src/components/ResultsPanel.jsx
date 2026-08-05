@@ -47,7 +47,7 @@ function Metric({ label, value, className }) {
   return <div className={className}><dt><MetricLabel label={label} /></dt><dd>{value}</dd></div>
 }
 
-const ResultsPanel = forwardRef(function ResultsPanel({ result }, ref) {
+const ResultsPanel = forwardRef(function ResultsPanel({ children, result }, ref) {
   const correctWpmProperty = hasOwnValue(result, 'correctWpm') ? 'correctWpm' : 'wpm'
   const primaryMetrics = [
     ['Correct WPM', formatDecimal(result, correctWpmProperty)],
@@ -69,6 +69,7 @@ const ResultsPanel = forwardRef(function ResultsPanel({ result }, ref) {
       <dl className="result-primary-metrics" aria-label="Primary typing statistics">
         {primaryMetrics.map(([label, value]) => <Metric className="result-primary-metric" key={label} label={label} value={value} />)}
       </dl>
+      {children && <div className="post-test-next-step">{children}</div>}
       <div className="result-details">
         <h3>Details</h3>
         <dl className="result-secondary-metrics" aria-label="Detailed typing statistics">

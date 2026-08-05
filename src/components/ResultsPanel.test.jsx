@@ -59,12 +59,17 @@ describe('result screen', () => {
     render(<CoachRecommendation recommendation={{ nextDifficulty: 'INTERMEDIATE', suggestedCategory: 'Java', suggestedDuration: 60, explanation: 'Keep a steady rhythm.', metrics: { accuracy: 99, wpmGap: 2 } }} onContinue={onContinue} onPracticeAgain={onPracticeAgain} onChooseAnother={onChooseAnother} />)
 
     expect(screen.getByText('Excellent accuracy. Build your skills with a harder passage.')).toBeVisible()
-    expect(screen.getByText('Recommended difficulty')).toBeVisible()
-    expect(screen.getByText('Friendly level name')).toBeVisible()
+    expect(screen.getByText('Intermediate • Java • 60 Seconds')).toBeVisible()
     expect(screen.getByText('Reason')).toBeVisible()
-    fireEvent.click(screen.getByRole('button', { name: 'Continue Recommended Practice' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Practice Again' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Choose Another Practice' }))
+    const continueButton = screen.getByRole('button', { name: 'Continue Recommended Practice' })
+    const practiceAgainButton = screen.getByRole('button', { name: 'Practice Again' })
+    const chooseAnotherButton = screen.getByRole('button', { name: 'Choose Another Practice' })
+    expect(continueButton).toHaveClass('button-primary')
+    expect(practiceAgainButton).toHaveClass('button-secondary')
+    expect(chooseAnotherButton).toHaveClass('button-tertiary')
+    fireEvent.click(continueButton)
+    fireEvent.click(practiceAgainButton)
+    fireEvent.click(chooseAnotherButton)
     expect(onContinue).toHaveBeenCalledOnce()
     expect(onPracticeAgain).toHaveBeenCalledOnce()
     expect(onChooseAnother).toHaveBeenCalledOnce()
@@ -78,9 +83,32 @@ describe('result screen', () => {
   it('hides missing recommendation values cleanly', () => {
     render(<CoachRecommendation recommendation={{ suggestedCategory: 'Java' }} onPracticeAgain={() => {}} onChooseAnother={() => {}} />)
     expect(screen.getByText('Java')).toBeVisible()
-    expect(screen.queryByText('Recommended difficulty')).not.toBeInTheDocument()
-    expect(screen.queryByText('Recommended duration')).not.toBeInTheDocument()
     expect(screen.queryByText(/null|undefined|Not available/i)).not.toBeInTheDocument()
+  })
+
+  it('places the coach recommendation directly after result summary and before details', () => {
+    const recommendation = { nextDifficulty: 'INTERMEDIATE', suggestedCategory: 'Java', suggestedDuration: 60 }
+    const { container } = render(
+      <ResultsPanel result={result}>
+        <CoachRecommendation recommendation={recommendation} onContinue={() => {}} onPracticeAgain={() => {}} onChooseAnother={() => {}} />
+      </ResultsPanel>,
+    )
+
+    const summary = screen.getByLabelText('Primary typing statistics')
+    expect(summary.nextElementSibling).toHaveClass('post-test-next-step')
+    expect(summary.nextElementSibling).toContainElement(screen.getByRole('heading', { name: 'Coach Recommendation' }))
+    expect(summary.nextElementSibling.nextElementSibling).toHaveClass('result-details')
+    expect(container.querySelector('.post-test-next-step > .coach-card')).toBeInTheDocument()
+  })
+
+  it('uses compact responsive layout hooks without fixed-width overflow', () => {
+    const recommendation = { nextDifficulty: 'INTERMEDIATE', suggestedCategory: 'General English', suggestedDuration: 60 }
+    const { container } = render(<CoachRecommendation recommendation={recommendation} onContinue={() => {}} onPracticeAgain={() => {}} onChooseAnother={() => {}} />)
+
+    expect(container.querySelector('.coach-card')).toHaveClass('coach-card')
+    expect(container.querySelector('.coach-actions')).toBeInTheDocument()
+    expect(container.querySelectorAll('[style*="width"]')).toHaveLength(0)
+    expect(container.querySelectorAll('.coach-actions .button')).toHaveLength(3)
   })
 
   it('uses responsive containers that do not force a fixed viewport width', () => {
