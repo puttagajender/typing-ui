@@ -2,7 +2,7 @@ import FingerGuide from './FingerGuide'
 import GuidedLessonSession from './GuidedLessonSession'
 
 const config = {
-  lessonId: 'home-row', lessonNumber: 1, title: 'Home Row Foundation', previousHref: null,
+  lessonId: 'home-row', apiLessonId: 'HOME_ROW_1', lessonNumber: 1, title: 'Home Row Foundation', previousHref: null,
   learnedKeys: 'asdfjkl;', focusKeys: ['f', 'j', 'a', ';'], movementKeys: ['a', 's', 'd', 'f', 'j', 'k', 'l', ';'],
   wordBank: ['sad', 'dad', 'fall', 'ask', 'all', 'lad', 'flask', 'salad', 'salsa', 'falls', 'asks', 'dads', 'lads', 'adds', 'flasks'],
   introduction: 'Every finger has a permanent home. After pressing a key, return that finger to its home position. This relaxed return movement is the foundation of touch typing.',

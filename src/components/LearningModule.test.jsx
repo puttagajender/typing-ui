@@ -1,10 +1,18 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../App'
 import HomeRowLesson from './HomeRowLesson'
 import LearnHome from './LearnHome'
 
-const beginLesson = () => fireEvent.click(screen.getByRole('button', { name: 'Begin Warm-up' }))
+vi.mock('../services/learningApi', () => ({
+  LEARNING_API_ERROR: "We couldn't prepare a new practice set.",
+  generateLearningExercises: vi.fn().mockResolvedValue([
+    { id: 'warm-1', content: 'fffff', type: 'WARM_UP' }, { id: 'warm-2', content: 'jjjjj', type: 'WARM_UP' },
+    { id: 'move-1', content: 'asdf', type: 'MOVEMENT_PRACTICE' }, { id: 'word-1', content: 'sad', type: 'WORD_PRACTICE' },
+  ]),
+}))
+
+const beginLesson = async () => { fireEvent.click(screen.getByRole('button', { name: 'Begin Warm-up' })); await screen.findByLabelText('Type the exercise') }
 
 describe('Build Muscle Memory module', () => {
   beforeEach(() => { window.localStorage.clear(); window.history.replaceState({}, '', '/') })
@@ -38,8 +46,8 @@ describe('Build Muscle Memory module', () => {
     expect(Array.from(screen.getByLabelText('Lesson phases').children, (item) => item.textContent)).toEqual(['Learn', 'Warm-up', 'Movement Practice', 'Word Practice', 'Mini Challenge', 'Weak Key Recovery', 'Lesson Review'])
   })
 
-  it('unlocks varied warm-ups sequentially with encouraging feedback', () => {
-    render(<HomeRowLesson />); beginLesson()
+  it('unlocks varied warm-ups sequentially with encouraging feedback', async () => {
+    render(<HomeRowLesson />); await beginLesson()
     const first = screen.getByLabelText(/Type:/).textContent
     fireEvent.change(screen.getByLabelText('Type the exercise'), { target: { value: first } })
     const second = screen.getByLabelText(/Type:/).textContent
@@ -48,16 +56,16 @@ describe('Build Muscle Memory module', () => {
     expect(screen.getByLabelText('Type the exercise')).toHaveFocus()
   })
 
-  it('shows accuracy and progress without WPM or a timer', () => {
-    render(<HomeRowLesson />); beginLesson()
+  it('shows accuracy and progress without WPM or a timer', async () => {
+    render(<HomeRowLesson />); await beginLesson()
     expect(screen.getByLabelText('Live exercise feedback')).toHaveTextContent('Accuracy100.0%')
     expect(screen.getByLabelText('Live exercise feedback')).toHaveTextContent('Progress0%')
     expect(screen.queryByText(/WPM/i)).not.toBeInTheDocument()
-    expect(screen.getByText(/There is no timer/)).toBeVisible()
+    expect(screen.getByText(/Focus on relaxed accuracy/)).toBeVisible()
   })
 
-  it('blocks paste and provides escape navigation', () => {
-    render(<HomeRowLesson />); beginLesson()
+  it('blocks paste and provides escape navigation', async () => {
+    render(<HomeRowLesson />); await beginLesson()
     const input = screen.getByLabelText('Type the exercise')
     const event = new Event('paste', { bubbles: true, cancelable: true }); input.dispatchEvent(event)
     expect(event.defaultPrevented).toBe(true)
@@ -65,15 +73,10 @@ describe('Build Muscle Memory module', () => {
     expect(screen.getByRole('link', { name: 'Back to Build Muscle Memory' })).toHaveAttribute('href', '/learn')
   })
 
-  it('progresses through recovery into a complete lesson review', () => {
-    render(<HomeRowLesson />); beginLesson()
-    let guard = 0
-    while (!screen.queryByRole('heading', { name: 'Lesson Review' }) && guard < 100) {
-      const target = screen.getByLabelText(/Type:/).textContent
-      fireEvent.change(screen.getByLabelText('Type the exercise'), { target: { value: target } })
-      guard += 1
-    }
-    expect(guard).toBeLessThan(100)
+  it('shows a complete lesson review after the learner ends the session', async () => {
+    render(<HomeRowLesson />); await beginLesson()
+    fireEvent.click(screen.getByRole('button', { name: 'End Session' }))
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Lesson Review' })).toBeVisible())
     expect(screen.getByText('Time spent')).toBeVisible()
     expect(screen.getByText('Strongest key')).toBeVisible()
     expect(screen.getByText('Weakest key')).toBeVisible()

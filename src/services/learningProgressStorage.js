@@ -9,6 +9,18 @@ export const EMPTY_LEARNING_PROGRESS = {
   lessons: {},
 }
 
+function sanitizeLessons(lessons) {
+  if (!lessons || typeof lessons !== 'object' || Array.isArray(lessons)) return {}
+  return Object.fromEntries(Object.entries(lessons).filter(([, value]) => value && typeof value === 'object' && !Array.isArray(value)).map(([id, value]) => [id, {
+    completed: Boolean(value.completed),
+    bestAccuracy: Number.isFinite(Number(value.bestAccuracy)) ? Math.max(0, Math.min(100, Number(value.bestAccuracy))) : 0,
+    weakKeys: Array.isArray(value.weakKeys) ? value.weakKeys.filter((key) => typeof key === 'string') : [],
+    lastCompletedPhase: typeof value.lastCompletedPhase === 'string' ? value.lastCompletedPhase : 'learn',
+    selectedSessionDuration: [5, 15, 20].includes(Number(value.selectedSessionDuration)) ? Number(value.selectedSessionDuration) : 15,
+    masteryStatus: value.masteryStatus === 'mastered' ? 'mastered' : 'needs-practice',
+  }]))
+}
+
 export function loadLearningProgress() {
   try {
     const progress = JSON.parse(window.localStorage.getItem(LEARNING_PROGRESS_KEY))
@@ -20,7 +32,7 @@ export function loadLearningProgress() {
       bestLessonAccuracy: Number.isFinite(Number(progress.bestLessonAccuracy)) ? Math.max(0, Math.min(100, Number(progress.bestLessonAccuracy))) : 0,
       weakKeys: Array.isArray(progress.weakKeys) ? progress.weakKeys.filter((key) => typeof key === 'string') : [],
       lastAttemptedStage: typeof progress.lastAttemptedStage === 'string' ? progress.lastAttemptedStage : 'understand',
-      lessons: progress.lessons && typeof progress.lessons === 'object' && !Array.isArray(progress.lessons) ? progress.lessons : {},
+      lessons: sanitizeLessons(progress.lessons),
     }
   } catch {
     return EMPTY_LEARNING_PROGRESS
@@ -29,9 +41,17 @@ export function loadLearningProgress() {
 
 export function saveLessonProgress(lessonId, lessonProgress) {
   const current = loadLearningProgress()
+  const allowed = {
+    completed: Boolean(lessonProgress.completed),
+    bestAccuracy: Number.isFinite(Number(lessonProgress.bestAccuracy)) ? Number(lessonProgress.bestAccuracy) : 0,
+    weakKeys: Array.isArray(lessonProgress.weakKeys) ? lessonProgress.weakKeys.filter((key) => typeof key === 'string') : [],
+    lastCompletedPhase: typeof lessonProgress.lastCompletedPhase === 'string' ? lessonProgress.lastCompletedPhase : 'learn',
+    selectedSessionDuration: [5, 15, 20].includes(Number(lessonProgress.selectedSessionDuration)) ? Number(lessonProgress.selectedSessionDuration) : 15,
+    masteryStatus: lessonProgress.masteryStatus === 'mastered' ? 'mastered' : 'needs-practice',
+  }
   saveLearningProgress({
     ...current,
-    lessons: { ...current.lessons, [lessonId]: lessonProgress },
+    lessons: { ...current.lessons, [lessonId]: allowed },
   })
 }
 
